@@ -241,6 +241,22 @@ const parseMath=(expr)=>{
   if(!expr) return '';
   let raw=expr.trim();
 
+  // Stable explicit path for the reported radical-square question.
+  // This avoids regex ambiguity between the outer power parentheses and radical parentheses.
+  const radicalSumSquare=raw.match(/^\\(\\s*جذر\\(([^()]+)\\)\\s*\\+\\s*جذر\\(([^()]+)\\)\\s*\\)\\s*\\^\\s*2$/);
+  if(radicalSumSquare){
+    const left=radicalSumSquare[1].trim();
+    const right=radicalSumSquare[2].trim();
+    const base=`جذر(${left}) + جذر(${right})`;
+    return `<span class="math-power"><span class="math-base">( ${parseMath(base)} )</span><sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">2</span></sup></span>`;
+  }
+
+  // Stable explicit path for a sum ending in a coefficient times a radical (e.g. 7 + 2√10).
+  const radicalSum=raw.match(/^(.+?)\\s+\\+\\s+([0-9٠-٩]+)\\s*جذر\\(([^()]+)\\)$/);
+  if(radicalSum){
+    return `<span class="math-binary"><span>${parseMath(radicalSum[1])}</span><span class="math-op">+</span><span>${parseMathUnit(radicalSum[2]+` جذر(${radicalSum[3]})`)}</span></span>`;
+  }
+
   // Handle a complete parenthesized base raised to a power, including nested radicals.
   if(raw.startsWith("(")){
     let depth=0, closeIndex=-1;
