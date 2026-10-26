@@ -2,7 +2,8 @@ AL-MOFEED source integrity manifest
 File: ALMOFEED_World_Class_Professional.html
 Bundled asset: app/src/main/assets/index.html (must be byte-identical)
 Android package: com.almofeed.math
-Android versionCode: 6
-Android versionName: 4.1.1-fontfix
+Android versionCode: 7
+Android versionName: 4.1.2-mathfix-logo
+Launcher icon: adaptive icon based on the existing AL-MOFEED radical brand mark
 Build status: pending GitHub Actions build and APK signature verification.
 Device status: NOT TESTED on physical Android hardware.
