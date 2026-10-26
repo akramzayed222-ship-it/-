@@ -210,29 +210,29 @@ const parseMathUnit=(expr)=>{
 
   // Build coefficient and radical together before HTML nesting makes regex parsing unsafe.
   out=out.replace(/([0-9٠-٩]+)\s*جذر\[(.*?)\]\((.*?)\)/g,(_m,coeff,idx,c)=>
-    \`<span style="display:inline-flex;align-items:center"><span class="ar-root-coeff">\${applyNumeralsSafely(coeff)}</span>\${buildRadicalHtml(idx,c)}</span>\`);
+    `<span style="display:inline-flex;align-items:center"><span class="ar-root-coeff">${applyNumeralsSafely(coeff)}</span>${buildRadicalHtml(idx,c)}</span>`);
   out=out.replace(/([0-9٠-٩]+)\s*جذر\((.*?)\)/g,(_m,coeff,c)=>
-    \`<span style="display:inline-flex;align-items:center"><span class="ar-root-coeff">\${applyNumeralsSafely(coeff)}</span>\${buildRadicalHtml(null,c)}</span>\`);
+    `<span style="display:inline-flex;align-items:center"><span class="ar-root-coeff">${applyNumeralsSafely(coeff)}</span>${buildRadicalHtml(null,c)}</span>`);
   out=out.replace(/جذر\[(.*?)\]\((.*?)\)/g,(_m,i,c)=>buildRadicalHtml(i,c));
   out=out.replace(/جذر\((.*?)\)/g,(_m,c)=>buildRadicalHtml(null,c));
 
   // Parenthesized base raised to a power.
-  out=out.replace(/\(([^()]+)\)\^(\((.*?)\)|-?[^\\s\\+\\×\\÷\\=\\)]+)/g,(_m,inner,p1,p2)=>{
+  out=out.replace(/\(([^()]+)\)\^(\((.*?)\)|-?[^\s\+\×\÷\=\)]+)/g,(_m,inner,p1,p2)=>{
     const pInner=parseMath(inner);
     const expContent=p2!==undefined?p2:p1;
     const expHtml=p2!==undefined
-      ? \`<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(\${parseMath(expContent)})</span></sup>\`
+      ? `<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(${parseMath(expContent)})</span></sup>`
       : renderExpTag(expContent);
-    return \`<span class="math-power"><span class="math-base">(\${pInner})</span>\${expHtml}</span>\`;
+    return `<span class="math-power"><span class="math-base">(${pInner})</span>${expHtml}</span>`;
   });
 
   // A base raised to an exponent, including negative and rational exponents.
-  out=out.replace(/([أ-يa-zA-Z\\d\\)]+)\\^(\\((.*?)\\)|-?[^\\s\\+\\×\\÷\\=\\)]+)/g,(_m,base,p1,p2)=>{
+  out=out.replace(/([أ-يa-zA-Z\d\)]+)\^(\((.*?)\)|-?[^\s\+\×\÷\=\)]+)/g,(_m,base,p1,p2)=>{
     const expContent=p2!==undefined?p2:p1;
     const expHtml=p2!==undefined
-      ? \`<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(\${parseMath(expContent)})</span></sup>\`
+      ? `<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(${parseMath(expContent)})</span></sup>`
       : renderExpTag(expContent);
-    return \`<span class="math-power"><span class="math-base">\${applyNumeralsSafely(base)}</span>\${expHtml}</span>\`;
+    return `<span class="math-power"><span class="math-base">${applyNumeralsSafely(base)}</span>${expHtml}</span>`;
   });
   return applyNumeralsSafely(out);
 };
@@ -244,7 +244,7 @@ const parseMath=(expr)=>{
   if(!raw.startsWith('(') && !raw.includes('^')){
     const frac=splitTopLevel(raw, [" / ", "/"]);
     if(frac && frac.left.trim() && frac.right.trim()){
-      return \`<span class="math-fraction"><span class="math-num">\${parseMath(frac.left.trim())}</span><span class="math-den">\${parseMath(frac.right.trim())}</span></span>\`;
+      return `<span class="math-fraction"><span class="math-num">${parseMath(frac.left.trim())}</span><span class="math-den">${parseMath(frac.right.trim())}</span></span>`;
     }
   }
   // مساواة س = 2
