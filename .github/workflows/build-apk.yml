@@ -47,6 +47,8 @@ jobs:
           grep -q 'id="almofeed-android-font-fix"' ALMOFEED_World_Class_Professional.html
           grep -q 'setTextZoom(100)' app/src/main/java/com/almofeed/math/MainActivity.java
           grep -q 'android:icon="@mipmap/ic_launcher"' app/src/main/AndroidManifest.xml
+          grep -q 'versionCode 9' app/build.gradle
+          grep -q "versionName '4.1.4-math-assurance'" app/build.gradle
           test -s app/src/main/res/drawable/ic_launcher_foreground.xml
           test -s app/src/main/res/mipmap-anydpi/ic_launcher.xml
           test -s app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
@@ -66,11 +68,14 @@ jobs:
               'math:"(9س)^0 + 5س^0"',
               'font-size: clamp(1.3rem, 5.8vw, 1.75rem) !important;',
               'font-size: .78em !important;',
-              'top: -.08em !important;',
+              'top: calc(-.08em - 2mm) !important;',
           )
           missing = [item for item in required if item not in text]
           if missing:
               raise SystemExit('Required mobile/math cases missing: ' + repr(missing))
+          offset = 'top: calc(-.08em - 2mm) !important;'
+          if text.count(offset) != 2 or 'top: -.08em !important;' in text:
+              raise SystemExit('Exponent uplift must be applied exactly to question and options: ' + repr(text.count(offset)))
           PYCODE
 
       - name: Verify exercise and option bank unchanged from main
@@ -78,7 +83,7 @@ jobs:
           set -euo pipefail
           git fetch --no-tags --depth=1 origin main
           python3 - <<'PYCODE'
-          import subprocess
+          import hashlib, re, subprocess
           from pathlib import Path
           path = "ALMOFEED_World_Class_Professional.html"
           base = subprocess.check_output(["git", "show", f"FETCH_HEAD:{path}"], text=True)
@@ -89,9 +94,16 @@ jobs:
               if start < 0 or end < 0:
                   raise SystemExit("Could not locate the question/option bank.")
               return source[start:end+3]
-          if bank(base) != bank(current):
+          base_bank = bank(base)
+          current_bank = bank(current)
+          if base_bank != current_bank:
               raise SystemExit("FAIL: exercise or option data differ from main; refusing build.")
+          count = len(re.findall(r"^\s*\{level:", current_bank, flags=re.M))
+          if count < 1:
+              raise SystemExit("FAIL: no question records found in the protected bank.")
           print("PASS: all exercise, answer, option and explanation data are unchanged from main.")
+          print(f"Protected question records: {count}")
+          print(f"Protected bank SHA-256: {hashlib.sha256(current_bank.encode('utf-8')).hexdigest()}")
           PYCODE
 
       - name: Validate inline JavaScript syntax
@@ -116,7 +128,7 @@ jobs:
             node --check "$script"
           done
 
-      - name: Run targeted math-rendering regression tests
+      - name: Run full-bank parser and markup regression tests
         run: |
           set -euo pipefail
           python3 - <<'PYCODE'
@@ -128,25 +140,66 @@ jobs:
           if main is None:
               raise SystemExit("Main quiz script was not found.")
           start = main.find("let useEasternDigits=true;")
-          end = main.find("const MASTER_CHALLENGES=[", start)
-          if start < 0 or end < 0:
-              raise SystemExit("Could not isolate math parser for regression tests.")
-          parser = main[start:end]
+          bank_start = main.find("const MASTER_CHALLENGES=[", start)
+          bank_end = main.find(chr(10) + "];", bank_start)
+          if start < 0 or bank_start < 0 or bank_end < 0:
+              raise SystemExit("Could not isolate the parser and protected question bank.")
+          parser = main[start:bank_start]
+          bank_source = main[bank_start:bank_end+3]
           tests = r"""
-          const square = parseMath("(جذر(5) + جذر(2))^2");
+          const invalidToken = /\b(?:undefined|null|NaN)\b/i;
+          function assertBalancedMarkup(html, label) {
+            const stack = [];
+            const voidTags = new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);
+            const token = /<\/?([A-Za-z][A-Za-z0-9:-]*)\b[^>]*>/g;
+            for (const match of html.matchAll(token)) {
+              const raw = match[0], tag = match[1].toLowerCase();
+              if (raw.startsWith("</")) {
+                const open = stack.pop();
+                if (open !== tag) throw new Error(label + ": mismatched tag </" + tag + ">; open stack ended with " + open);
+              } else if (!voidTags.has(tag) && !/\/\s*>$/.test(raw)) {
+                stack.push(tag);
+              }
+            }
+            if (stack.length) throw new Error(label + ": unclosed tags " + stack.join(", "));
+          }
+          function renderAndCheck(expression, label) {
+            if (typeof expression !== "string" || !expression.trim()) throw new Error(label + ": empty/non-string source expression");
+            const rendered = parseMath(expression);
+            if (typeof rendered !== "string" || !rendered.trim()) throw new Error(label + ": parser returned empty output");
+            if (invalidToken.test(rendered)) throw new Error(label + ": invalid output token found in " + rendered);
+            assertBalancedMarkup(rendered, label);
+            return rendered;
+          }
+          const fields = ["topic","prompt","math","rule","explanation"];
+          if (!Array.isArray(MASTER_CHALLENGES) || MASTER_CHALLENGES.length < 1) throw new Error("The protected bank is empty or invalid.");
+          let expressionCount = 0, optionCount = 0;
+          for (let i = 0; i < MASTER_CHALLENGES.length; i++) {
+            const q = MASTER_CHALLENGES[i];
+            for (const field of fields) {
+              if (typeof q[field] !== "string" || !q[field].trim()) throw new Error("Question " + (i+1) + ": missing/empty field " + field);
+            }
+            if (!Array.isArray(q.options) || q.options.length < 2) throw new Error("Question " + (i+1) + ": invalid options array");
+            if (!Number.isInteger(q.correct) || q.correct < 0 || q.correct >= q.options.length) throw new Error("Question " + (i+1) + ": correct option index is out of range");
+            renderAndCheck(q.math, "Question " + (i+1) + " expression");
+            expressionCount++;
+            for (let j = 0; j < q.options.length; j++) {
+              renderAndCheck(q.options[j], "Question " + (i+1) + " option " + (j+1));
+              optionCount++;
+            }
+          }
+          const square = renderAndCheck("(جذر(5) + جذر(2))^2", "Radical-square regression");
           const rootCount = (square.match(/class="ar-root-container"/g) || []).length;
           if (!square.includes('class="math-power"') || rootCount !== 2 || !square.includes('class="math-exponent"')) {
-            throw new Error("Radical-square rendering regression: " + square);
+            throw new Error("Radical-square rendering structure regression: " + square);
           }
-
-          const radicalOption = parseMath("7 + 2 جذر(10)");
+          const radicalOption = renderAndCheck("7 + 2 جذر(10)", "Radical-sum option regression");
           if (!radicalOption.includes('class="math-binary"') ||
               !radicalOption.includes('class="ar-root-coeff"') ||
               !radicalOption.includes('class="ar-root-container"')) {
             throw new Error("Coefficient plus radical rendering regression: " + radicalOption);
           }
-
-          const equation = parseMath("س = 5/2");
+          const equation = renderAndCheck("س = 5/2", "Equation fraction regression");
           const equalIndex = equation.indexOf('class="math-op"');
           const fractionIndex = equation.indexOf('class="math-fraction"');
           const numeratorIndex = equation.indexOf('class="math-num"', fractionIndex);
@@ -154,34 +207,45 @@ jobs:
           if (!equation.includes('class="math-binary"') || fractionIndex < 0 ||
               equalIndex < 0 || fractionIndex < equalIndex ||
               numeratorIndex < 0 || denominatorIndex < numeratorIndex) {
-            throw new Error("Equation fraction layout regression: " + equation);
+            throw new Error("Equation/fraction layout regression: " + equation);
           }
-          const numeratorRegion = equation.slice(fractionIndex, denominatorIndex);
-          if (numeratorRegion.includes('class="math-op"')) {
-            throw new Error("Equality was incorrectly included in fraction numerator: " + equation);
+          if (equation.slice(fractionIndex, denominatorIndex).includes('class="math-op"')) {
+            throw new Error("Equality was incorrectly included in the fraction numerator: " + equation);
           }
-          console.log("PASS: (√5 + √2)^2 parser structure");
-          console.log("PASS: 7 + 2√10 option parser structure");
-          console.log("PASS: س = 5/2 renders equality outside vertical fraction");
-          const zeroExponent = parseMath("(9س)^0 + 5س^0");
-          const plusIndex = zeroExponent.indexOf(">+</span>");
-          if (plusIndex < 0) throw new Error("Zero-power expression lost plus operator: " + zeroExponent);
-          const grouped = zeroExponent.slice(0, plusIndex);
-          const product = zeroExponent.slice(plusIndex);
-          if (!grouped.includes('class="math-base">( ') ||
-              !grouped.includes('س )') ||
-              !grouped.includes('class="math-exponent"') ||
-              !product.includes('class="math-coefficient"') ||
-              !product.includes('class="math-base">س</span>') ||
-              !product.includes('class="math-exponent"') ||
-              product.includes('class="math-base">5س')) {
-            throw new Error("Zero-power coefficient/variable scope regression: " + zeroExponent);
+          function checkZeroExponent(expression, label) {
+            const rendered = renderAndCheck(expression, label);
+            const plusIndex = rendered.indexOf(">+</span>");
+            if (plusIndex < 0) throw new Error(label + ": plus operator missing");
+            const grouped = rendered.slice(0, plusIndex);
+            const product = rendered.slice(plusIndex);
+            if (!grouped.includes('class="math-base">( ') ||
+                !grouped.includes('٩س') && !grouped.includes('9</span>س') ||
+                !grouped.includes('class="math-exponent"') ||
+                !product.includes('class="math-coefficient"') ||
+                !product.includes('class="math-base">س</span>') ||
+                !product.includes('class="math-exponent"') ||
+                product.includes('class="math-base">٥س') ||
+                product.includes('class="math-base">5س')) {
+              throw new Error(label + ": incorrect coefficient/exponent scope: " + rendered);
+            }
           }
-          console.log("PASS: (9س)^0 remains grouped and 5س^0 applies exponent to س only");
+          checkZeroExponent("(٩س)^٠ + ٥س^٠", "Localized zero-exponent regression");
+          checkZeroExponent("(9س)^0 + 5س^0", "ASCII zero-exponent regression");
+          console.log("PASS: " + expressionCount + " question expressions and " + optionCount + " options passed parser/markup checks.");
+          console.log("PASS: grouped/variable zero exponents, radical square, radical sum and equation fraction.");
           """
-          Path("/tmp/almofeed-math-renderer-regression.cjs").write_text(parser + "\n" + tests, encoding="utf-8")
+          Path("/tmp/almofeed-full-bank-regression.cjs").write_text(parser + "\n" + bank_source + "\n" + tests, encoding="utf-8")
           PYCODE
-          node /tmp/almofeed-math-renderer-regression.cjs
+          node /tmp/almofeed-full-bank-regression.cjs
+
+      - name: Install headless Chromium for browser assurance
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.52.0
+          npx playwright install --with-deps chromium
+
+      - name: Run full-bank browser DOM, layout and interaction audit
+        run: node .github/scripts/test-math-browser.cjs
 
       - name: Build APK
         run: gradle --no-daemon clean assembleDebug
@@ -198,9 +262,19 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ALMOFEED-Mobile-Font-Fix-APK
+          name: ALMOFEED-Math-Assurance-APK
           path: |
             app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/debug/app-debug.apk.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload visual QA evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ALMOFEED-Math-Assurance-Visual-Evidence
+          path: |
+            artifacts/math-rendering-mobile-360.png
+            artifacts/math-rendering-mobile-360.json
           if-no-files-found: error
           retention-days: 14
