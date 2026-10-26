@@ -240,6 +240,32 @@ const parseMathUnit=(expr)=>{
 const parseMath=(expr)=>{
   if(!expr) return '';
   let raw=expr.trim();
+
+  // Match a complete parenthesized base with nested parentheses, e.g. (جذر(5) + جذر(2))^2.
+  // Regex-only parsing cannot safely identify the outer group when radicals also use parentheses.
+  if(raw.startsWith("(")){
+    let depth=0, closeIndex=-1;
+    for(let i=0;i<raw.length;i++){
+      if(raw[i]==="(") depth++;
+      else if(raw[i]===")"){
+        depth--;
+        if(depth===0){ closeIndex=i; break; }
+      }
+    }
+    if(closeIndex>0 && raw[closeIndex+1]==="^"){
+      const baseExpr=raw.slice(1,closeIndex).trim();
+      let exponent=raw.slice(closeIndex+2).trim();
+      if(baseExpr && exponent){
+        let exponentHtml;
+        if(exponent.startsWith("(") && exponent.endsWith(")")){
+          exponentHtml=`<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(${parseMath(exponent.slice(1,-1))})</span></sup>`;
+        }else{
+          exponentHtml=renderExpTag(exponent);
+        }
+        return `<span class="math-power"><span class="math-base">( ${parseMath(baseExpr)} )</span>${exponentHtml}</span>`;
+      }
+    }
+  }
   // Render top-level slash expressions as stacked fractions; preserve rational exponents for renderExpTag.
   if(!raw.startsWith('(') && !raw.includes('^')){
     const frac=splitTopLevel(raw, [" / ", "/"]);
