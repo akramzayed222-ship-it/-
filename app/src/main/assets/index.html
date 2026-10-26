@@ -240,19 +240,48 @@ const parseMathUnit=(expr)=>{
 const parseMath=(expr)=>{
   if(!expr) return '';
   let raw=expr.trim();
-  // Render top-level slash expressions as stacked fractions; preserve rational exponents for renderExpTag.
-  if(!raw.startsWith('(') && !raw.includes('^')){
+
+  // Handle a complete parenthesized base raised to a power, including nested radicals.
+  if(raw.startsWith("(")){
+    let depth=0, closeIndex=-1;
+    for(let i=0;i<raw.length;i++){
+      if(raw[i]==="(") depth++;
+      else if(raw[i]===")"){
+        depth--;
+        if(depth===0){ closeIndex=i; break; }
+      }
+    }
+    if(closeIndex>0 && raw[closeIndex+1]==="^"){
+      const baseExpr=raw.slice(1,closeIndex).trim();
+      const exponent=raw.slice(closeIndex+2).trim();
+      if(baseExpr && exponent){
+        let exponentHtml;
+        if(exponent.startsWith("(") && exponent.endsWith(")")){
+          exponentHtml=`<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(${parseMath(exponent.slice(1,-1))})</span></sup>`;
+        }else{
+          exponentHtml=renderExpTag(exponent);
+        }
+        return `<span class="math-power"><span class="math-base">( ${parseMath(baseExpr)} )</span>${exponentHtml}</span>`;
+      }
+    }
+  }
+
+  // CRITICAL ORDER: split equations before fractions so "س = 5/2"
+  // becomes an equation whose right-hand side is a stacked fraction.
+  const eq=splitTopLevel(raw, [" = "]);
+  if(eq){
+    return `<span class="math-binary"><span>${parseMath(eq.left)}</span><span class="math-op">=</span><span>${parseMath(eq.right)}</span></span>`;
+  }
+
+  // Only split a slash at the current expression level; exponent fractions remain in renderExpTag.
+  if(!raw.includes("^")){
     const frac=splitTopLevel(raw, [" / ", "/"]);
     if(frac && frac.left.trim() && frac.right.trim()){
       return `<span class="math-fraction"><span class="math-num">${parseMath(frac.left.trim())}</span><span class="math-den">${parseMath(frac.right.trim())}</span></span>`;
     }
   }
-  // مساواة س = 2
-  const eq=splitTopLevel(raw, [" = "]);
-  if(eq){
-    return `<span class="math-binary"><span>${parseMath(eq.left)}</span><span class="math-op">=</span><span>${parseMath(eq.right)}</span></span>`;
-  }
-  // عمليات ثنائية في المستوى الأعلى فقط - هذا يصلح خلل 5^(س + 2)
+
+  // Split binary operators only at top level; recursively render each side.
   const bin=splitTopLevel(raw, [" + ", " - ", " × ", " ÷ "]);
   if(bin){
     const op=bin.op;
