@@ -67,7 +67,7 @@ jobs:
               'جذر(3س + 4) = 5',
               'math:"(9س)^0 + 5س^0"',
               'font-size: clamp(1.3rem, 5.8vw, 1.75rem) !important;',
-              'font-size: .78em !important;',
+              'font-size: .82em !important;',
               'top: calc(-.08em - 2mm) !important;',
           )
           missing = [item for item in required if item not in text]
@@ -76,6 +76,9 @@ jobs:
           offset = 'top: calc(-.08em - 2mm) !important;'
           if text.count(offset) != 2 or 'top: -.08em !important;' in text:
               raise SystemExit('Exponent uplift must be applied exactly to question and options: ' + repr(text.count(offset)))
+          size = 'font-size: .82em !important;'
+          if text.count(size) < 2:
+              raise SystemExit('Exponent size must be restored for both question and options.')
           PYCODE
 
       - name: Verify exercise and option bank unchanged from main
