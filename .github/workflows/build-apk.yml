@@ -219,7 +219,7 @@ jobs:
             const grouped = rendered.slice(0, plusIndex);
             const product = rendered.slice(plusIndex);
             if (!grouped.includes('class="math-base">( ') ||
-                !grouped.includes('٩س') && !grouped.includes('9</span>س') ||
+                !grouped.includes('٩س') && !grouped.includes('٩</span>س') && !grouped.includes('9</span>س') ||
                 !grouped.includes('class="math-exponent"') ||
                 !product.includes('class="math-coefficient"') ||
                 !product.includes('class="math-base">س</span>') ||
