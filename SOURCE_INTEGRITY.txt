@@ -5,8 +5,8 @@ Android package: com.almofeed.math
 Android versionCode: 9
 Android versionName: 4.1.4-math-assurance
 Launcher icon: adaptive icon based on the existing AL-MOFEED radical brand mark
-Scope: exponent uplift and size restoration plus evidence-first rendering assurance only; exercise/option bank must remain byte-identical to main.
+Scope: exponent uplift, size restoration and line-height visibility correction plus evidence-first rendering assurance only; exercise/option bank must remain byte-identical to main.
 Integrity gates: source/asset byte identity; bank comparison against main; SHA-256 evidence for the protected bank and APK.
-Automated checks: JavaScript syntax; all bank question expressions and options through the math parser; targeted exponent/radical/fraction cases; Chromium DOM/layout checks at 360x800; answer, explanation, scoring, result and restart flow.
+Automated checks: JavaScript syntax; all bank question expressions and options through the math parser; targeted exponent/radical/fraction cases; Chromium DOM/layout checks at 360x800 including exponent glyph height and line-height; answer, explanation, scoring, result and restart flow.
 Build status: The exact-commit GitHub Actions workflow is the authoritative build/signature record; this manifest does not certify release success.
 Physical device status: NOT TESTED on physical Android hardware.
