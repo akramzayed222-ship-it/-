@@ -263,6 +263,9 @@ jobs:
           APK="app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK"
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
+          BADGING="$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK")"
+          printf '%s\n' "$BADGING" | grep -Eq "^package: name='com\\.almofeed\\.math' versionCode='9' versionName='4\\.1\\.4-math-assurance'"
+          printf '%s\n' "$BADGING" | grep "^package:"
           sha256sum "$APK" > "$APK.sha256"
           cat "$APK.sha256"
 
