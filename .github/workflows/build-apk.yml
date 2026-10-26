@@ -67,6 +67,28 @@ jobs:
               raise SystemExit('Required mobile/math cases missing: ' + repr(missing))
           PYCODE
 
+      - name: Validate inline JavaScript syntax
+        run: |
+          set -euo pipefail
+          JS_DIR="$(mktemp -d)"
+          export JS_DIR
+          python3 - <<'PYCODE'
+          import os, re
+          from pathlib import Path
+          html = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
+          blocks = re.findall(r'<script\\b[^>]*>(.*?)</script\\s*>', html, flags=re.I | re.S)
+          scripts = [code for code in blocks if code.strip()]
+          if not scripts:
+              raise SystemExit("No inline JavaScript blocks found.")
+          out = Path(os.environ["JS_DIR"])
+          for i, code in enumerate(scripts, 1):
+              (out / f"inline-{i}.js").write_text(code, encoding="utf-8")
+          print(f"Checking {len(scripts)} inline JavaScript blocks with node --check")
+          PYCODE
+          for script in "$JS_DIR"/*.js; do
+            node --check "$script"
+          done
+
       - name: Build APK
         run: gradle --no-daemon clean assembleDebug
 
