@@ -68,6 +68,7 @@ jobs:
               'math:"(9س)^0 + 5س^0"',
               'font-size: clamp(1.3rem, 5.8vw, 1.75rem) !important;',
               'font-size: .82em !important;',
+              'line-height: 1 !important;',
               'top: calc(-.08em - 2mm) !important;',
           )
           missing = [item for item in required if item not in text]
@@ -77,8 +78,11 @@ jobs:
           if text.count(offset) != 2 or 'top: -.08em !important;' in text:
               raise SystemExit('Exponent uplift must be applied exactly to question and options: ' + repr(text.count(offset)))
           size = 'font-size: .82em !important;'
-          if text.count(size) < 2:
-              raise SystemExit('Exponent size must be restored for both question and options.')
+          if text.count(size) != 2:
+              raise SystemExit('Exponent size must be applied exactly to question and options.')
+          line_height = 'line-height: 1 !important;'
+          if text.count(line_height) != 2:
+              raise SystemExit('Exponent line-height must be explicitly set for question and options.')
           PYCODE
 
       - name: Verify exercise and option bank unchanged from main
