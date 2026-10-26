@@ -241,7 +241,7 @@ jobs:
       - name: Install headless Chromium for browser assurance
         run: |
           set -euo pipefail
-          npm install --no-save --no-package-lock playwright@1.52.0
+          npm install --no-save --no-package-lock playwright@1.64.1
           npx playwright install --with-deps chromium
 
       - name: Run full-bank browser DOM, layout and interaction audit
