@@ -2,9 +2,11 @@ AL-MOFEED source integrity manifest
 File: ALMOFEED_World_Class_Professional.html
 Bundled asset: app/src/main/assets/index.html (must be byte-identical)
 Android package: com.almofeed.math
-Android versionCode: 8
-Android versionName: 4.1.3-zero-exponent-fontfix
+Android versionCode: 9
+Android versionName: 4.1.4-math-assurance
 Launcher icon: adaptive icon based on the existing AL-MOFEED radical brand mark
-Scope: zero-exponent variable binding and math-font sizing only; exercise/option bank must remain byte-identical to main.
-Build status: pending GitHub Actions build and APK signature verification.
-Device status: NOT TESTED on physical Android hardware.
+Scope: exponent uplift adjustment and evidence-first rendering assurance only; exercise/option bank must remain byte-identical to main.
+Integrity gates: source/asset byte identity; bank comparison against main; SHA-256 evidence for the protected bank and APK.
+Automated checks: JavaScript syntax; all bank question expressions and options through the math parser; targeted exponent/radical/fraction cases; Chromium DOM/layout checks at 360x800; answer, explanation, scoring, result and restart flow.
+Build status: PENDING current GitHub Actions workflow result.
+Physical device status: NOT TESTED on physical Android hardware.
