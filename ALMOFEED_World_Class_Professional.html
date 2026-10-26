@@ -76,30 +76,34 @@
   :root { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   html, body { max-width: 100%; overflow-x: hidden; }
   #mathDisplay {
-    font-size: clamp(1.2rem, 5.4vw, 1.65rem) !important;
+    font-size: clamp(1.3rem, 5.8vw, 1.75rem) !important;
     line-height: 1.35 !important;
     max-width: 100%;
     overflow-wrap: normal;
   }
-  #mathDisplay .math-power { font-size: 1em !important; }
+  #mathDisplay .math-power { font-size: 1.12em !important; }
   #mathDisplay .math-exponent {
-    font-size: .68em !important;
+    font-size: .78em !important;
+    position: relative !important;
+    top: -.08em !important;
     padding: 1px 3px !important;
     margin-right: 2px !important;
     border-width: 1px !important;
     box-shadow: none !important;
   }
   #optionsGrid button {
-    font-size: clamp(.94rem, 4vw, 1.12rem) !important;
+    font-size: clamp(1rem, 4.2vw, 1.18rem) !important;
     min-height: 68px !important;
     min-width: 0;
     padding: 10px !important;
     line-height: 1.3 !important;
     overflow-wrap: anywhere;
   }
-  #optionsGrid .math-power { font-size: 1.08em !important; }
+  #optionsGrid .math-power { font-size: 1.16em !important; }
   #optionsGrid .math-exponent {
-    font-size: .68em !important;
+    font-size: .78em !important;
+    position: relative !important;
+    top: -.08em !important;
     padding: 1px 3px !important;
     margin-right: 2px !important;
     border-width: 1px !important;
@@ -110,10 +114,11 @@
   .math-fraction { margin: 0 3px; }
   .math-num, .math-den { padding-left: 4px; padding-right: 4px; }
   .math-base { white-space: nowrap; }
+  .math-coefficient { display: inline-block; font-weight: 900; margin-inline-end: .03em; }
   .af-q .qmath { font-size: clamp(1rem, 4.4vw, 1.25rem) !important; }
   @media (max-width: 360px) {
     #optionsGrid button { padding: 8px !important; min-height: 62px !important; }
-    #mathDisplay { font-size: clamp(1.12rem, 5.2vw, 1.4rem) !important; }
+    #mathDisplay { font-size: clamp(1.2rem, 5.5vw, 1.5rem) !important; }
   }
 </style></head>
 <body class="p-3 sm:p-4 pb-24 w-full max-w-lg mx-auto">
@@ -208,6 +213,16 @@ const parseMathUnit=(expr)=>{
   if(!expr) return '';
   let out=expr.trim();
 
+  // Keep numeric coefficients outside the variable's exponent, e.g. 5س^0 = 5 × (س^0).
+  // The grouped base (9س)^0 remains grouped by parseMath's parenthesized-power path.
+  out=out.replace(/([0-9٠-٩]+)\s*([أ-ي])\^(\((.*?)\)|-?[^\s\+\×\÷\=\)]+)/g,(_m,coeff,variable,p1,p2)=>{
+    const expContent=p2!==undefined?p2:p1;
+    const expHtml=p2!==undefined
+      ? `<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(${parseMath(expContent)})</span></sup>`
+      : renderExpTag(expContent);
+    return `<span class="math-coefficient">${applyNumeralsSafely(coeff)}</span><span class="math-power"><span class="math-base">${applyNumeralsSafely(variable)}</span>${expHtml}</span>`;
+  });
+
   // Build coefficient and radical together before HTML nesting makes regex parsing unsafe.
   out=out.replace(/([0-9٠-٩]+)\s*جذر\[(.*?)\]\((.*?)\)/g,(_m,coeff,idx,c)=>
     `<span style="display:inline-flex;align-items:center"><span class="ar-root-coeff">${applyNumeralsSafely(coeff)}</span>${buildRadicalHtml(idx,c)}</span>`);
@@ -270,7 +285,8 @@ const parseMath=(expr)=>{
     if(closeIndex>0 && raw[closeIndex+1]==="^"){
       const baseExpr=raw.slice(1,closeIndex).trim();
       const exponent=raw.slice(closeIndex+2).trim();
-      if(baseExpr && exponent){
+      const exponentHasTopLevelOperator=!!splitTopLevel(exponent, [" = ", " + ", " - ", " × ", " ÷ "]);
+      if(baseExpr && exponent && !exponentHasTopLevelOperator){
         let exponentHtml;
         if(exponent.startsWith("(") && exponent.endsWith(")")){
           exponentHtml=`<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(${parseMath(exponent.slice(1,-1))})</span></sup>`;

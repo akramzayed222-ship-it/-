@@ -10,8 +10,8 @@ android {
         applicationId 'com.almofeed.math'
         minSdk 23
         targetSdk 34
-        versionCode 7
-        versionName '4.1.2-mathfix-logo'
+        versionCode 8
+        versionName '4.1.3-zero-exponent-fontfix'
     }
 
     compileOptions {
