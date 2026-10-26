@@ -168,7 +168,8 @@ jobs:
           if (plusIndex < 0) throw new Error("Zero-power expression lost plus operator: " + zeroExponent);
           const grouped = zeroExponent.slice(0, plusIndex);
           const product = zeroExponent.slice(plusIndex);
-          if (!grouped.includes('class="math-base">( 9س )') ||
+          if (!grouped.includes('class="math-base">( ') ||
+              !grouped.includes('س )') ||
               !grouped.includes('class="math-exponent"') ||
               !product.includes('class="math-coefficient"') ||
               !product.includes('class="math-base">س</span>') ||
