@@ -45,6 +45,18 @@ const { chromium } = require('playwright');
         const prompt = document.querySelector('#questionPrompt')?.textContent ?? '';
         const buttons = [...document.querySelectorAll('#optionsGrid button')];
         const renderedText = (display?.textContent ?? '') + ' ' + buttons.map(button => button.textContent ?? '').join(' ');
+        const allMathRoots = [display, ...buttons];
+        const exponentBoxes = allMathRoots.flatMap(root => [...(root?.querySelectorAll('.math-exponent') ?? [])]);
+        const exponentMetrics = exponentBoxes.map(exponent => {
+          const rect = exponent.getBoundingClientRect();
+          const style = getComputedStyle(exponent);
+          return {
+            height: rect.height,
+            fontSize: Number.parseFloat(style.fontSize),
+            lineHeight: style.lineHeight,
+            text: exponent.textContent?.trim() ?? ''
+          };
+        });
         return {
           prompt,
           mathText: display?.textContent?.trim() ?? '',
@@ -60,7 +72,12 @@ const { chromium } = require('playwright');
           exponentStructureErrors: [...(display?.querySelectorAll('.math-exponent') ?? [])].filter(exponent => {
             const power = exponent.closest('.math-power');
             return !power || !power.querySelector('.math-base');
-          }).length
+          }).length,
+          exponentVisualErrors: exponentMetrics.filter(item =>
+            !item.text || item.height < 10 ||
+            item.lineHeight === '0px' ||
+            (Number.isFinite(item.fontSize) && Number.parseFloat(item.lineHeight) < item.fontSize * 0.7)
+          ).length
         };
       });
 
@@ -70,6 +87,7 @@ const { chromium } = require('playwright');
       assert.equal(state.emptyOptions.length, 0, 'Question ' + (i + 1) + ': one or more options rendered empty');
       assert.equal(state.invalidToken, false, 'Question ' + (i + 1) + ': undefined/null/NaN appeared in rendered DOM');
       assert.equal(state.exponentStructureErrors, 0, 'Question ' + (i + 1) + ': an exponent has no associated power/base');
+      assert.equal(state.exponentVisualErrors, 0, 'Question ' + (i + 1) + ': exponent glyph is visually collapsed, empty, or has invalid line-height');
       if (state.mathOverflow || state.optionOverflows.length) {
         layoutFailures.push({ question: i + 1, mathOverflow: state.mathOverflow, optionOverflows: state.optionOverflows });
       }
@@ -99,8 +117,11 @@ const { chromium } = require('playwright');
         const base = exponent.closest('.math-power')?.querySelector('.math-base');
         const rect = exponent.getBoundingClientRect();
         return {
+          text: (exponent.textContent ?? '').trim(),
           baseText: (base?.textContent ?? '').replace(/\s/g, ''),
           top: Number.parseFloat(getComputedStyle(exponent).top),
+          fontSize: Number.parseFloat(getComputedStyle(exponent).fontSize),
+          lineHeight: getComputedStyle(exponent).lineHeight,
           hasPower: !!exponent.closest('.math-power'),
           hasBase: !!base,
           width: rect.width,
@@ -122,6 +143,9 @@ const { chromium } = require('playwright');
     assert.equal(critical.coefficientText, '٥', 'Coefficient ٥ must remain outside the power');
     assert.equal(critical.coefficientFollowedByPower, true, 'Coefficient must be a separate DOM node immediately before the variable power');
     assert.ok(critical.exponents.every(item => item.hasPower && item.hasBase), 'Every critical exponent must remain associated with a power and base');
+    assert.ok(critical.exponents.every(item => item.text === '٠' || item.text === '0'), 'Critical exponent glyph is missing or rendered as non-zero content: ' + JSON.stringify(critical.exponents));
+    assert.ok(critical.exponents.every(item => Number.isFinite(item.height) && item.height >= 10), 'Critical exponent glyph box is collapsed/clipped (<10px): ' + JSON.stringify(critical.exponents));
+    assert.ok(critical.exponents.every(item => item.lineHeight !== '0px' && Number.parseFloat(item.lineHeight) >= item.fontSize * 0.7), 'Critical exponent inherits a collapsed line-height: ' + JSON.stringify(critical.exponents));
     assert.ok(critical.exponents.every(item => Number.isFinite(item.top) && item.top <= -6.5), 'Adjusted exponent offset is not applied as expected (target: approximately 2mm higher)');
 
     // Capture reproducible visual evidence for the critical case on a narrow Android-sized viewport.
@@ -179,7 +203,7 @@ const { chromium } = require('playwright');
     assert.deepEqual(pageErrors, [], 'Uncaught browser JavaScript errors: ' + JSON.stringify(pageErrors));
 
     console.log('PASS: browser DOM/layout audit rendered ' + bankCount + ' questions and ' + totalOptions + ' options at 360x800.');
-    console.log('PASS: zero-exponent scope, 2mm-equivalent uplift, answer flow, explanation, result, and restart.');
+    console.log('PASS: zero-exponent scope, visible exponent glyphs/line-height, 2mm-equivalent uplift, answer flow, explanation, result, and restart.');
     console.log('EVIDENCE: artifacts/math-rendering-mobile-360.png and artifacts/math-rendering-mobile-360.json');
   } finally {
     await browser.close();
