@@ -177,5 +177,6 @@ jobs:
             PLAY_STORE_RELEASE_CHECKLIST_AR.md
             docs/privacy-policy-ar.html
             docs/RELEASE_SECURITY_AND_COPYRIGHT_AR.md
+            docs/PLAY_PRODUCTION_SECRETS_SETUP_AR.md
           if-no-files-found: error
           retention-days: 3
