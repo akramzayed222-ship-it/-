@@ -145,6 +145,8 @@ jobs:
 
           # Store listing/privacy identity gates: policy must be complete and app must expose the same contact details.
           grep -q 'id="privacyPolicyFooter"' app/src/main/assets/index.html
+          grep -q '© 2026 المفيد في الرياضيات' app/src/main/assets/index.html
+          test -s docs/RELEASE_SECURITY_AND_COPYRIGHT_AR.md
           grep -q 'href="https://akramzayed222-ship-it.github.io/-/privacy-policy-ar.html"' app/src/main/assets/index.html
           grep -q 'Akramzayed95@gmail.com' app/src/main/assets/index.html
           grep -q '770101800' app/src/main/assets/index.html
@@ -424,6 +426,7 @@ jobs:
             PRIVACY_POLICY_AR.md
             docs/privacy-policy-ar.html
             ENABLE_GITHUB_PAGES_AR.md
+            docs/RELEASE_SECURITY_AND_COPYRIGHT_AR.md
             SOURCE_INTEGRITY.txt
             README_AR.md
           if-no-files-found: error
