@@ -51,7 +51,7 @@ jobs:
           asset = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
           
           def protected_segments(document, label):
-              scripts = re.findall(r'<script\\b[^>]*>(.*?)</script\\s*>', document, flags=re.I | re.S)
+              scripts = re.findall(r'<script\b[^>]*>(.*?)</script\s*>', document, flags=re.I | re.S)
               main = next((item for item in scripts if "const MASTER_CHALLENGES=[" in item), None)
               if main is None:
                   raise SystemExit(label + ": main quiz script not found")
@@ -76,7 +76,7 @@ jobs:
           ):
               if forbidden in asset:
                   raise SystemExit("FAIL: preview/developer UI remains in Android asset: " + forbidden)
-          if "id=\\"almofeed-android-font-fix\\"" not in asset:
+          if 'id="almofeed-android-font-fix"' not in asset:
               raise SystemExit("FAIL: Android mathematical typography patch is missing.")
           print("PASS: Android parser/runtime and full question bank are identical to the master source.")
           print("PASS: web-only/developer-preview controls are absent from the Android asset.")
