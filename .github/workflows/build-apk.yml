@@ -125,6 +125,40 @@ jobs:
               raise SystemExit('Exponent line-height must be explicitly set for question and options.')
           PYCODE
 
+          # Store listing/privacy identity gates: policy must be complete and app must expose the same contact details.
+          grep -q 'id="privacyPolicyFooter"' app/src/main/assets/index.html
+          grep -q 'href="https://akramzayed222-ship-it.github.io/-/privacy-policy-ar.html"' app/src/main/assets/index.html
+          grep -q 'Akramzayed95@gmail.com' app/src/main/assets/index.html
+          grep -q '770101800' app/src/main/assets/index.html
+          test -s docs/privacy-policy-ar.html
+          python3 - <<'PYCODE'
+          import re
+          from pathlib import Path
+          policy = Path("docs/privacy-policy-ar.html").read_text(encoding="utf-8")
+          listing = Path("PLAY_STORE_RELEASE_CHECKLIST_AR.md").read_text(encoding="utf-8")
+          checks = {
+              "privacy policy email": "Akramzayed95@gmail.com" in policy,
+              "privacy policy phone": "770101800" in policy,
+              "supervisor attribution": "أ. أكرم زايد" in policy,
+              "application id": "com.almofeed.math" in policy,
+              "official policy date": "27 أكتوبر 2026" in policy,
+              "store listing email": "Akramzayed95@gmail.com" in listing,
+              "store listing phone": "770101800" in listing,
+              "store listing supervisor": "أ. أكرم زايد" in listing,
+              "public privacy URL": "privacy-policy-ar.html" in listing,
+          }
+          missing = [key for key, ok in checks.items() if not ok]
+          if missing:
+              raise SystemExit("Release metadata incomplete: " + ", ".join(missing))
+          match = re.search(r"### الوصف المختصر.*?\n([^\n]+)", listing)
+          if not match or len(match.group(1).strip()) > 80:
+              raise SystemExit("Play Store short description is missing or exceeds 80 characters.")
+          if re.search(r"\[(?:أدخل|ضع|اسم الناشر|بريد)", policy):
+              raise SystemExit("Unresolved placeholder remains in the public privacy policy.")
+          print("PASS: in-app support/privacy footer, privacy policy, and Play listing share the required official contact.")
+          print("PASS: short description is within Google Play's 80-character limit.")
+          PYCODE
+
       - name: Verify exercise and option bank unchanged from main
         run: |
           set -euo pipefail
