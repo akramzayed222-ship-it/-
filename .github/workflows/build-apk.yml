@@ -1,4 +1,4 @@
-name: AL-MOFEED Android APK Build
+name: AL-MOFEED Android Play Release Assurance
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build:
-    name: Build and verify debug APK
+    name: Build and verify Android debug APK and Play AAB
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -33,12 +33,12 @@ jobs:
           packages: platform-tools
 
       - name: Install Android SDK packages
-        run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+        run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
+          gradle-version: '8.13'
 
       - name: Verify source integrity and required math cases
         run: |
@@ -47,8 +47,10 @@ jobs:
           grep -q 'id="almofeed-android-font-fix"' ALMOFEED_World_Class_Professional.html
           grep -q 'setTextZoom(100)' app/src/main/java/com/almofeed/math/MainActivity.java
           grep -q 'android:icon="@mipmap/ic_launcher"' app/src/main/AndroidManifest.xml
-          grep -q 'versionCode 9' app/build.gradle
-          grep -q "versionName '4.1.4-math-assurance'" app/build.gradle
+          grep -q 'compileSdk 36' app/build.gradle
+          grep -q 'targetSdk 36' app/build.gradle
+          grep -q 'versionCode 10' app/build.gradle
+          grep -q "versionName '4.1.5'" app/build.gradle
           test -s app/src/main/res/drawable/ic_launcher_foreground.xml
           test -s app/src/main/res/mipmap-anydpi/ic_launcher.xml
           test -s app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
@@ -254,28 +256,80 @@ jobs:
       - name: Run full-bank browser DOM, layout and interaction audit
         run: node .github/scripts/test-math-browser.cjs
 
-      - name: Build APK
-        run: gradle --no-daemon clean assembleDebug
+      - name: Prepare optional Play upload signing key
+        env:
+          PLAY_UPLOAD_KEYSTORE_BASE64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+          PLAY_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
+          PLAY_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          PLAY_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          ALL_EMPTY=true
+          ANY_EMPTY=false
+          for value in "$PLAY_UPLOAD_KEYSTORE_BASE64" "$PLAY_UPLOAD_KEYSTORE_PASSWORD" "$PLAY_UPLOAD_KEY_ALIAS" "$PLAY_UPLOAD_KEY_PASSWORD"; do
+            if [ -n "$value" ]; then ALL_EMPTY=false; else ANY_EMPTY=true; fi
+          done
+          if [ "$ALL_EMPTY" = true ]; then
+            echo "PLAY_SIGNING_CONFIGURED=false" >> "$GITHUB_ENV"
+            echo "Play upload signing is not configured; the AAB will be unsigned and NOT uploadable to Google Play."
+          elif [ "$ANY_EMPTY" = true ]; then
+            echo "ERROR: Play upload signing secrets are incomplete." >&2
+            exit 1
+          else
+            KEYSTORE_PATH="$RUNNER_TEMP/almofeed-play-upload.jks"
+            printf '%s' "$PLAY_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+            test -s "$KEYSTORE_PATH"
+            {
+              echo "PLAY_UPLOAD_KEYSTORE=$KEYSTORE_PATH"
+              echo "PLAY_UPLOAD_KEYSTORE_PASSWORD=$PLAY_UPLOAD_KEYSTORE_PASSWORD"
+              echo "PLAY_UPLOAD_KEY_ALIAS=$PLAY_UPLOAD_KEY_ALIAS"
+              echo "PLAY_UPLOAD_KEY_PASSWORD=$PLAY_UPLOAD_KEY_PASSWORD"
+              echo "PLAY_SIGNING_CONFIGURED=true"
+            } >> "$GITHUB_ENV"
+            echo "Play upload signing secrets are present; bundle signing will be verified after the build."
+          fi
+
+      - name: Build debug APK and Play App Bundle
+        run: gradle --no-daemon clean assembleDebug bundleRelease
 
       - name: Verify APK signature and calculate checksum
         run: |
           set -euo pipefail
           APK="app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK"
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
-          BADGING="$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK")"
-          printf '%s\n' "$BADGING" | grep -Eq "^package: name='com\\.almofeed\\.math' versionCode='9' versionName='4\\.1\\.4-math-assurance'"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
+          BADGING="$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK")"
+          printf '%s\n' "$BADGING" | grep -Eq "^package: name='com\\.almofeed\\.math' versionCode='10' versionName='4\\.1\\.5'"
           printf '%s\n' "$BADGING" | grep "^package:"
           sha256sum "$APK" > "$APK.sha256"
           cat "$APK.sha256"
 
-      - name: Upload APK artifact
+      - name: Verify Play App Bundle
+        run: |
+          set -euo pipefail
+          AAB="app/build/outputs/bundle/release/app-release.aab"
+          test -s "$AAB"
+          unzip -t "$AAB" >/dev/null
+          mkdir -p artifacts
+          if [ "${PLAY_SIGNING_CONFIGURED:-false}" = "true" ]; then
+            jarsigner -verify "$AAB" >/dev/null
+            echo "SIGNED_AND_JARSIGNER_VERIFIED" | tee artifacts/play-release-signing-state.txt
+          else
+            echo "UNSIGNED_NOT_FOR_GOOGLE_PLAY: configure the four PLAY_UPLOAD_* GitHub Actions secrets and rebuild." | tee artifacts/play-release-signing-state.txt
+          fi
+          sha256sum "$AAB" > "$AAB.sha256"
+          cat "$AAB.sha256"
+
+      - name: Upload Android release candidate artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ALMOFEED-Math-Assurance-APK
+          name: ALMOFEED-Play-Release-Candidate
           path: |
             app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/debug/app-debug.apk.sha256
+            app/build/outputs/bundle/release/app-release.aab
+            app/build/outputs/bundle/release/app-release.aab.sha256
+            artifacts/play-release-signing-state.txt
           if-no-files-found: error
           retention-days: 14
 
