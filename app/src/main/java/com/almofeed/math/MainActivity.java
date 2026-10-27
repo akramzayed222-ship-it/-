@@ -8,14 +8,17 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowInsets;
-import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.webkit.WebViewAssetLoader;
+
 public final class MainActivity extends Activity {
     private WebView webView;
+    private WebViewAssetLoader assetLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,11 +30,16 @@ public final class MainActivity extends Activity {
             getWindow().setNavigationBarContrastEnforced(false);
         }
 
+        // Serve trusted bundled content over an app-owned HTTPS origin rather
+        // than file://, avoiding broad filesystem access from the JavaScript context.
+        assetLoader = new WebViewAssetLoader.Builder()
+                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .build();
+
         webView = new WebView(this);
         webView.setBackgroundColor(Color.rgb(3, 7, 18));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            // Android 15+ enforces edge-to-edge for modern target SDKs. Keep
-            // the local HTML viewport clear of system bars and display cutouts.
+            // Android 15+ enforces edge-to-edge for modern target SDKs.
             webView.setOnApplyWindowInsetsListener((view, insets) -> {
                 android.graphics.Insets safeInsets = insets.getInsets(
                         WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
@@ -39,8 +47,9 @@ public final class MainActivity extends Activity {
                 return insets;
             });
         }
+
         WebSettings settings = webView.getSettings();
-        settings.setJavaScriptEnabled(true);
+        settings.setJavaScriptEnabled(true); // Required by the local math challenge.
         settings.setDomStorageEnabled(true);
         settings.setTextZoom(100);
         settings.setDefaultFontSize(16);
@@ -48,32 +57,49 @@ public final class MainActivity extends Activity {
         settings.setSupportZoom(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setAllowFileAccess(true);
+        settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
+        settings.setAllowFileAccessFromFileURLs(false);
+        settings.setAllowUniversalAccessFromFileURLs(false);
+        settings.setJavaScriptCanOpenWindowsAutomatically(false);
+        settings.setSupportMultipleWindows(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
-        webView.setWebChromeClient(new WebChromeClient());
+        // No remote WebView debugging interface in any build.
+        WebView.setWebContentsDebuggingEnabled(false);
+
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                return assetLoader.shouldInterceptRequest(request.getUrl());
+            }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
                 String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
-                if ("file".equals(scheme) || "about".equals(scheme) || "blob".equals(scheme)) {
+
+                // Only the exact bundled entry point may navigate inside the WebView.
+                if ("https".equals(scheme)
+                        && "appassets.androidplatform.net".equalsIgnoreCase(uri.getHost())
+                        && "/assets/index.html".equals(uri.getPath())) {
                     return false;
                 }
-                if ("https".equals(scheme) || "http".equals(scheme)
-                        || "mailto".equals(scheme) || "tel".equals(scheme)) {
+
+                // Open deliberate external/support links outside the app's WebView.
+                if ("https".equals(scheme) || "mailto".equals(scheme) || "tel".equals(scheme)) {
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW, uri));
                     } catch (ActivityNotFoundException ignored) {
-                        // No external handler installed.
+                        // No compatible external handler installed.
                     }
                 }
                 return true;
             }
         });
+
         setContentView(webView);
-        webView.loadUrl("file:///android_asset/index.html");
+        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");
     }
 
     @Override
@@ -91,6 +117,7 @@ public final class MainActivity extends Activity {
             webView.destroy();
             webView = null;
         }
+        assetLoader = null;
         super.onDestroy();
     }
 }
