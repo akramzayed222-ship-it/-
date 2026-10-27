@@ -94,6 +94,9 @@ jobs:
           grep -q 'new WebViewAssetLoader.Builder()' app/src/main/java/com/almofeed/math/MainActivity.java
           grep -q 'settings.setAllowFileAccess(false)' app/src/main/java/com/almofeed/math/MainActivity.java
           grep -q 'settings.setAllowContentAccess(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'settings.setDomStorageEnabled(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'cookieManager.setAcceptCookie(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'cookieManager.setAcceptThirdPartyCookies(webView, false)' app/src/main/java/com/almofeed/math/MainActivity.java
           grep -q 'settings.setAllowFileAccessFromFileURLs(false)' app/src/main/java/com/almofeed/math/MainActivity.java
           grep -q 'settings.setAllowUniversalAccessFromFileURLs(false)' app/src/main/java/com/almofeed/math/MainActivity.java
           grep -q 'WebView.setWebContentsDebuggingEnabled(false)' app/src/main/java/com/almofeed/math/MainActivity.java
