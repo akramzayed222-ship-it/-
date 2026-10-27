@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowInsets;
+import android.webkit.CookieManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -50,7 +51,7 @@ public final class MainActivity extends Activity {
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true); // Required by the local math challenge.
-        settings.setDomStorageEnabled(true);
+        settings.setDomStorageEnabled(false); // The game does not use localStorage/sessionStorage.
         settings.setTextZoom(100);
         settings.setDefaultFontSize(16);
         settings.setDefaultFixedFontSize(13);
@@ -64,6 +65,11 @@ public final class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+
+        // No game feature needs cookies; disable first- and third-party cookies.
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptCookie(false);
+        cookieManager.setAcceptThirdPartyCookies(webView, false);
 
         // No remote WebView debugging interface in any build.
         WebView.setWebContentsDebuggingEnabled(false);
