@@ -1,0 +1,19 @@
+AL-MOFEED Android Play release-candidate integrity manifest
+Master source: ALMOFEED_World_Class_Professional.html
+Android production asset: app/src/main/assets/index.html
+Source policy: the Android asset intentionally differs from the master HTML in platform packaging/presentation only; the math parser/runtime segment and complete MASTER_CHALLENGES bank must compare byte-for-byte.
+Android package: com.almofeed.math
+Android versionCode: 10
+Android versionName: 4.1.5
+compileSdk / targetSdk: 36 / 36
+Launcher icon: existing AL-MOFEED radical brand mark
+Protected content: all exercise prompts, expressions, options, correct-answer indices, rules and explanations must remain unchanged.
+Android-only cleanup: removed web/PWA installation and HTML-download controls, third-party APK-builder instructions, preview/runtime message handlers, preview-only font injection and question-bank inspector; no question bank/parser rewrite is permitted.
+Privacy/support layer: in-app footer links to https://akramzayed222-ship-it.github.io/-/privacy-policy-ar.html and exposes the requested official support email and contact number; the footer is outside the protected math runtime and question bank.
+Public policy: docs/privacy-policy-ar.html; the GitHub Pages workflow publishes this page. The public URL must be opened and verified after deployment before submission to Play Console.
+Store metadata: PLAY_STORE_RELEASE_CHECKLIST_AR.md; its short description is verified at no more than 80 characters.
+Integrity gates: source-versus-asset parser/bank equality; forbidden developer/preview identifiers absent from Android asset; in-app privacy URL/contact check; complete privacy page and store listing; all bank expressions/options parsed; targeted exponent/radical/fraction cases; Chromium DOM/layout/interaction tests; APK and AAB hashes; AAB signing status explicit.
+Signing: a Play upload keystore is never stored in this repository. Configure GitHub Actions secrets PLAY_UPLOAD_KEYSTORE_BASE64, PLAY_UPLOAD_KEYSTORE_PASSWORD, PLAY_UPLOAD_KEY_ALIAS, and PLAY_UPLOAD_KEY_PASSWORD for a signed upload AAB. If absent, CI explicitly labels the AAB unsigned and not uploadable to Google Play.
+Build status: exact-commit GitHub Actions workflow is authoritative. An artifact is not releasable unless the workflow succeeds, AAB is signed with the intended upload key, and Play Console checks pass.
+Physical device status: NOT TESTED on physical Android hardware.
+Play Console status: NOT PUBLISHED; publisher-owned Console review, app content declarations, store listing assets, testing tracks and release submission remain required.

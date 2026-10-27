@@ -1,0 +1,59 @@
+plugins {
+    id 'com.android.application'
+}
+
+def playKeystorePath = System.getenv('PLAY_UPLOAD_KEYSTORE')
+def playStorePassword = System.getenv('PLAY_UPLOAD_KEYSTORE_PASSWORD')
+def playKeyAlias = System.getenv('PLAY_UPLOAD_KEY_ALIAS')
+def playKeyPassword = System.getenv('PLAY_UPLOAD_KEY_PASSWORD')
+def playUploadSigningConfigured = [playKeystorePath, playStorePassword, playKeyAlias, playKeyPassword]
+        .every { it != null && !it.trim().isEmpty() }
+
+android {
+    namespace 'com.almofeed.math'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.almofeed.math'
+        minSdk 23
+        targetSdk 36
+        versionCode 10
+        versionName '4.1.5'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    signingConfigs {
+        if (playUploadSigningConfigured) {
+            playUpload {
+                storeFile file(playKeystorePath)
+                storePassword playStorePassword
+                keyAlias playKeyAlias
+                keyPassword playKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        debug { debuggable true }
+        release {
+            // R8 obfuscates/optimizes the native Android wrapper; it does not
+            // obfuscate JavaScript/HTML bundled in assets.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            if (playUploadSigningConfigured) {
+                signingConfig signingConfigs.playUpload
+            }
+        }
+    }
+}
+
+
+dependencies {
+    // Compatible with minSdk 23; supplies the safer HTTPS-based local asset origin.
+    implementation 'androidx.webkit:webkit:1.15.0'
+}

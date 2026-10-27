@@ -1,0 +1,416 @@
+name: AL-MOFEED Android Play Release Assurance
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'fix/android-mobile-font-math-test'
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and verify Android debug APK and Play AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Android SDK packages
+        run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Verify source integrity and required math cases
+        run: |
+          set -euo pipefail
+          python3 - <<'PYCODE'
+          import re
+          from pathlib import Path
+          
+          source = Path("ALMOFEED_World_Class_Professional.html").read_text(encoding="utf-8")
+          asset = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
+          
+          def protected_segments(document, label):
+              scripts = re.findall(r'<script\b[^>]*>(.*?)</script\s*>', document, flags=re.I | re.S)
+              main = next((item for item in scripts if "const MASTER_CHALLENGES=[" in item), None)
+              if main is None:
+                  raise SystemExit(label + ": main quiz script not found")
+              parser_start = main.find("let useEasternDigits=true;")
+              bank_start = main.find("const MASTER_CHALLENGES=[", parser_start)
+              bank_end = main.find(chr(10) + "];", bank_start)
+              if min(parser_start, bank_start, bank_end) < 0:
+                  raise SystemExit(label + ": parser/question bank boundaries not found")
+              return main[parser_start:bank_start], main[bank_start:bank_end+3]
+          
+          source_parser, source_bank = protected_segments(source, "Source HTML")
+          asset_parser, asset_bank = protected_segments(asset, "Android asset")
+          if source_parser != asset_parser:
+              raise SystemExit("FAIL: Android math parser/runtime differs from the master source.")
+          if source_bank != asset_bank:
+              raise SystemExit("FAIL: Android exercise/option/answer/explanation bank differs from source.")
+          for forbidden in (
+              "apkGuideBtn", "apkModal", "downloadFileBtn", "installPwaBtn",
+              "PWABuilder", "Netlify Drop", "beforeinstallprompt", "navigator.share",
+              "ecto:", "afBank", "questionBankBtn", "almofeed-professional",
+              "OptimisticAI", "OptimisticMono"
+          ):
+              if forbidden in asset:
+                  raise SystemExit("FAIL: preview/developer UI remains in Android asset: " + forbidden)
+          if 'id="almofeed-android-font-fix"' not in asset:
+              raise SystemExit("FAIL: Android mathematical typography patch is missing.")
+          print("PASS: Android parser/runtime and full question bank are identical to the master source.")
+          print("PASS: web-only/developer-preview controls are absent from the Android asset.")
+          PYCODE
+          grep -q 'id="almofeed-android-font-fix"' ALMOFEED_World_Class_Professional.html
+          grep -q 'id="almofeed-android-font-fix"' app/src/main/assets/index.html
+          grep -q 'setTextZoom(100)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'android:icon="@mipmap/ic_launcher"' app/src/main/AndroidManifest.xml
+          grep -q 'compileSdk 36' app/build.gradle
+          grep -q 'targetSdk 36' app/build.gradle
+          grep -q 'minifyEnabled true' app/build.gradle
+          grep -q 'shrinkResources true' app/build.gradle
+          grep -q 'proguard-android-optimize.txt' app/build.gradle
+          grep -q "androidx.webkit:webkit:1.15.0" app/build.gradle
+          grep -q 'new WebViewAssetLoader.Builder()' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'settings.setAllowFileAccess(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'settings.setAllowContentAccess(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'settings.setDomStorageEnabled(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'cookieManager.setAcceptCookie(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'cookieManager.setAcceptThirdPartyCookies(webView, false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'settings.setAllowFileAccessFromFileURLs(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'settings.setAllowUniversalAccessFromFileURLs(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'WebView.setWebContentsDebuggingEnabled(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'https://appassets.androidplatform.net/assets/index.html' app/src/main/java/com/almofeed/math/MainActivity.java
+          if grep -q 'file:///android_asset/index.html' app/src/main/java/com/almofeed/math/MainActivity.java; then
+            echo 'FAIL: insecure file:// HTML entry point detected.' >&2
+            exit 1
+          fi
+          grep -q 'versionCode 10' app/build.gradle
+          grep -q "versionName '4.1.5'" app/build.gradle
+          test -s app/src/main/res/drawable/ic_launcher_foreground.xml
+          test -s app/src/main/res/mipmap-anydpi/ic_launcher.xml
+          test -s app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          python3 - <<'PYCODE'
+          import hashlib
+          from pathlib import Path
+          p = Path('app/src/main/assets/index.html')
+          data = p.read_bytes()
+          text = data.decode('utf-8')
+          print(f'Bundled HTML bytes: {len(data)}')
+          print(f'Bundled HTML SHA-256: {hashlib.sha256(data).hexdigest()}')
+          required = (
+              'جذر[3](-64)',
+              '27^(-1/3)',
+              '10 / جذر(5)',
+              'جذر(3س + 4) = 5',
+              'math:"(9س)^0 + 5س^0"',
+              'font-size: clamp(1.3rem, 5.8vw, 1.75rem) !important;',
+              'font-size: .82em !important;',
+              'line-height: 1 !important;',
+              'top: calc(-.08em - 2mm) !important;',
+          )
+          missing = [item for item in required if item not in text]
+          if missing:
+              raise SystemExit('Required mobile/math cases missing: ' + repr(missing))
+          offset = 'top: calc(-.08em - 2mm) !important;'
+          if text.count(offset) != 2 or 'top: -.08em !important;' in text:
+              raise SystemExit('Exponent uplift must be applied exactly to question and options: ' + repr(text.count(offset)))
+          size = 'font-size: .82em !important;'
+          if text.count(size) != 2:
+              raise SystemExit('Exponent size must be applied exactly to question and options.')
+          line_height = 'line-height: 1 !important;'
+          if text.count(line_height) != 2:
+              raise SystemExit('Exponent line-height must be explicitly set for question and options.')
+          PYCODE
+
+          # Store listing/privacy identity gates: policy must be complete and app must expose the same contact details.
+          grep -q 'id="privacyPolicyFooter"' app/src/main/assets/index.html
+          grep -q '© 2026 المفيد في الرياضيات' app/src/main/assets/index.html
+          test -s docs/RELEASE_SECURITY_AND_COPYRIGHT_AR.md
+          grep -q 'href="https://akramzayed222-ship-it.github.io/-/privacy-policy-ar.html"' app/src/main/assets/index.html
+          grep -q 'Akramzayed95@gmail.com' app/src/main/assets/index.html
+          grep -q '770101800' app/src/main/assets/index.html
+          test -s docs/privacy-policy-ar.html
+          python3 - <<'PYCODE'
+          import re
+          from pathlib import Path
+          policy = Path("docs/privacy-policy-ar.html").read_text(encoding="utf-8")
+          listing = Path("PLAY_STORE_RELEASE_CHECKLIST_AR.md").read_text(encoding="utf-8")
+          checks = {
+              "privacy policy email": "Akramzayed95@gmail.com" in policy,
+              "privacy policy phone": "770101800" in policy,
+              "supervisor attribution": "أ. أكرم زايد" in policy,
+              "application id": "com.almofeed.math" in policy,
+              "official policy date": "27 أكتوبر 2026" in policy,
+              "store listing email": "Akramzayed95@gmail.com" in listing,
+              "store listing phone": "770101800" in listing,
+              "store listing supervisor": "أ. أكرم زايد" in listing,
+              "public privacy URL": "privacy-policy-ar.html" in listing,
+          }
+          missing = [key for key, ok in checks.items() if not ok]
+          if missing:
+              raise SystemExit("Release metadata incomplete: " + ", ".join(missing))
+          match = re.search(r"### الوصف المختصر.*?\n([^\n]+)", listing)
+          if not match or len(match.group(1).strip()) > 80:
+              raise SystemExit("Play Store short description is missing or exceeds 80 characters.")
+          if re.search(r"\[(?:أدخل|ضع|اسم الناشر|بريد)", policy):
+              raise SystemExit("Unresolved placeholder remains in the public privacy policy.")
+          print("PASS: in-app support/privacy footer, privacy policy, and Play listing share the required official contact.")
+          print("PASS: short description is within Google Play's 80-character limit.")
+          PYCODE
+
+      - name: Verify exercise and option bank unchanged from main
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          python3 - <<'PYCODE'
+          import hashlib, re, subprocess
+          from pathlib import Path
+          path = "ALMOFEED_World_Class_Professional.html"
+          base = subprocess.check_output(["git", "show", f"FETCH_HEAD:{path}"], text=True)
+          current = Path(path).read_text(encoding="utf-8")
+          def bank(source):
+              start = source.find("const MASTER_CHALLENGES=[")
+              end = source.find(chr(10) + "];", start)
+              if start < 0 or end < 0:
+                  raise SystemExit("Could not locate the question/option bank.")
+              return source[start:end+3]
+          base_bank = bank(base)
+          current_bank = bank(current)
+          if base_bank != current_bank:
+              raise SystemExit("FAIL: exercise or option data differ from main; refusing build.")
+          count = len(re.findall(r"^\s*\{level:", current_bank, flags=re.M))
+          if count < 1:
+              raise SystemExit("FAIL: no question records found in the protected bank.")
+          print("PASS: all exercise, answer, option and explanation data are unchanged from main.")
+          print(f"Protected question records: {count}")
+          print(f"Protected bank SHA-256: {hashlib.sha256(current_bank.encode('utf-8')).hexdigest()}")
+          PYCODE
+
+      - name: Validate inline JavaScript syntax
+        run: |
+          set -euo pipefail
+          JS_DIR="$(mktemp -d)"
+          export JS_DIR
+          python3 - <<'PYCODE'
+          import os, re
+          from pathlib import Path
+          html = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
+          blocks = re.findall(r'<script\b[^>]*>(.*?)</script\s*>', html, flags=re.I | re.S)
+          scripts = [code for code in blocks if code.strip()]
+          if not scripts:
+              raise SystemExit("No inline JavaScript blocks found.")
+          out = Path(os.environ["JS_DIR"])
+          for i, code in enumerate(scripts, 1):
+              (out / f"inline-{i}.js").write_text(code, encoding="utf-8")
+          print(f"Checking {len(scripts)} inline JavaScript blocks with node --check")
+          PYCODE
+          for script in "$JS_DIR"/*.js; do
+            node --check "$script"
+          done
+
+      - name: Run full-bank parser and markup regression tests
+        run: |
+          set -euo pipefail
+          python3 - <<'PYCODE'
+          import re
+          from pathlib import Path
+          html = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
+          blocks = re.findall(r'<script\b[^>]*>(.*?)</script\s*>', html, flags=re.I | re.S)
+          main = next((block for block in blocks if "const MASTER_CHALLENGES=[" in block), None)
+          if main is None:
+              raise SystemExit("Main quiz script was not found.")
+          start = main.find("let useEasternDigits=true;")
+          bank_start = main.find("const MASTER_CHALLENGES=[", start)
+          bank_end = main.find(chr(10) + "];", bank_start)
+          if start < 0 or bank_start < 0 or bank_end < 0:
+              raise SystemExit("Could not isolate the parser and protected question bank.")
+          parser = main[start:bank_start]
+          bank_source = main[bank_start:bank_end+3]
+          tests = r"""
+          const invalidToken = /\b(?:undefined|null|NaN)\b/i;
+          function assertBalancedMarkup(html, label) {
+            const stack = [];
+            const voidTags = new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);
+            const token = /<\/?([A-Za-z][A-Za-z0-9:-]*)\b[^>]*>/g;
+            for (const match of html.matchAll(token)) {
+              const raw = match[0], tag = match[1].toLowerCase();
+              if (raw.startsWith("</")) {
+                const open = stack.pop();
+                if (open !== tag) throw new Error(label + ": mismatched tag </" + tag + ">; open stack ended with " + open);
+              } else if (!voidTags.has(tag) && !/\/\s*>$/.test(raw)) {
+                stack.push(tag);
+              }
+            }
+            if (stack.length) throw new Error(label + ": unclosed tags " + stack.join(", "));
+          }
+          function renderAndCheck(expression, label) {
+            if (typeof expression !== "string" || !expression.trim()) throw new Error(label + ": empty/non-string source expression");
+            const rendered = parseMath(expression);
+            if (typeof rendered !== "string" || !rendered.trim()) throw new Error(label + ": parser returned empty output");
+            if (invalidToken.test(rendered)) throw new Error(label + ": invalid output token found in " + rendered);
+            assertBalancedMarkup(rendered, label);
+            return rendered;
+          }
+          const fields = ["topic","prompt","math","rule","explanation"];
+          if (!Array.isArray(MASTER_CHALLENGES) || MASTER_CHALLENGES.length < 1) throw new Error("The protected bank is empty or invalid.");
+          let expressionCount = 0, optionCount = 0;
+          for (let i = 0; i < MASTER_CHALLENGES.length; i++) {
+            const q = MASTER_CHALLENGES[i];
+            for (const field of fields) {
+              if (typeof q[field] !== "string" || !q[field].trim()) throw new Error("Question " + (i+1) + ": missing/empty field " + field);
+            }
+            if (!Array.isArray(q.options) || q.options.length < 2) throw new Error("Question " + (i+1) + ": invalid options array");
+            if (!Number.isInteger(q.correct) || q.correct < 0 || q.correct >= q.options.length) throw new Error("Question " + (i+1) + ": correct option index is out of range");
+            renderAndCheck(q.math, "Question " + (i+1) + " expression");
+            expressionCount++;
+            for (let j = 0; j < q.options.length; j++) {
+              renderAndCheck(q.options[j], "Question " + (i+1) + " option " + (j+1));
+              optionCount++;
+            }
+          }
+          const square = renderAndCheck("(جذر(5) + جذر(2))^2", "Radical-square regression");
+          const rootCount = (square.match(/class="ar-root-container"/g) || []).length;
+          if (!square.includes('class="math-power"') || rootCount !== 2 || !square.includes('class="math-exponent"')) {
+            throw new Error("Radical-square rendering structure regression: " + square);
+          }
+          const radicalOption = renderAndCheck("7 + 2 جذر(10)", "Radical-sum option regression");
+          if (!radicalOption.includes('class="math-binary"') ||
+              !radicalOption.includes('class="ar-root-coeff"') ||
+              !radicalOption.includes('class="ar-root-container"')) {
+            throw new Error("Coefficient plus radical rendering regression: " + radicalOption);
+          }
+          const equation = renderAndCheck("س = 5/2", "Equation fraction regression");
+          const equalIndex = equation.indexOf('class="math-op"');
+          const fractionIndex = equation.indexOf('class="math-fraction"');
+          const numeratorIndex = equation.indexOf('class="math-num"', fractionIndex);
+          const denominatorIndex = equation.indexOf('class="math-den"', fractionIndex);
+          if (!equation.includes('class="math-binary"') || fractionIndex < 0 ||
+              equalIndex < 0 || fractionIndex < equalIndex ||
+              numeratorIndex < 0 || denominatorIndex < numeratorIndex) {
+            throw new Error("Equation/fraction layout regression: " + equation);
+          }
+          if (equation.slice(fractionIndex, denominatorIndex).includes('class="math-op"')) {
+            throw new Error("Equality was incorrectly included in the fraction numerator: " + equation);
+          }
+          function checkZeroExponent(expression, label) {
+            const rendered = renderAndCheck(expression, label);
+            const plusIndex = rendered.indexOf(">+</span>");
+            if (plusIndex < 0) throw new Error(label + ": plus operator missing");
+            const grouped = rendered.slice(0, plusIndex);
+            const product = rendered.slice(plusIndex);
+            if (!grouped.includes('class="math-base">( ') ||
+                !grouped.includes('٩س') && !grouped.includes('٩</span>س') && !grouped.includes('9</span>س') ||
+                !grouped.includes('class="math-exponent"') ||
+                !product.includes('class="math-coefficient"') ||
+                !product.includes('class="math-base">س</span>') ||
+                !product.includes('class="math-exponent"') ||
+                product.includes('class="math-base">٥س') ||
+                product.includes('class="math-base">5س')) {
+              throw new Error(label + ": incorrect coefficient/exponent scope: " + rendered);
+            }
+          }
+          checkZeroExponent("(٩س)^٠ + ٥س^٠", "Localized zero-exponent regression");
+          checkZeroExponent("(9س)^0 + 5س^0", "ASCII zero-exponent regression");
+          console.log("PASS: " + expressionCount + " question expressions and " + optionCount + " options passed parser/markup checks.");
+          console.log("PASS: grouped/variable zero exponents, radical square, radical sum and equation fraction.");
+          """
+          Path("/tmp/almofeed-full-bank-regression.cjs").write_text(parser + "\n" + bank_source + "\n" + tests, encoding="utf-8")
+          PYCODE
+          node /tmp/almofeed-full-bank-regression.cjs
+
+      - name: Install headless Chromium for browser assurance
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.64.1
+          npx playwright install --with-deps chromium
+
+      - name: Run full-bank browser DOM, layout and interaction audit
+        run: node .github/scripts/test-math-browser.cjs
+
+      - name: Mark this artifact as unsigned QA-only
+        run: |
+          set -euo pipefail
+          echo "PLAY_SIGNING_CONFIGURED=false" >> "$GITHUB_ENV"
+          echo "This workflow is non-production QA only. Release signing secrets are isolated in the protected play-production environment workflow."
+
+      - name: Build debug APK and Play App Bundle
+        run: gradle --no-daemon clean assembleDebug bundleRelease
+
+      - name: Verify APK signature and calculate checksum
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
+          BADGING="$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK")"
+          printf '%s\n' "$BADGING" | grep -Eq "^package: name='com\\.almofeed\\.math' versionCode='10' versionName='4\\.1\\.5'"
+          printf '%s\n' "$BADGING" | grep "^package:"
+          sha256sum "$APK" > "$APK.sha256"
+          cat "$APK.sha256"
+
+      - name: Verify Play App Bundle
+        run: |
+          set -euo pipefail
+          AAB="app/build/outputs/bundle/release/app-release.aab"
+          test -s "$AAB"
+          unzip -t "$AAB" >/dev/null
+          mkdir -p artifacts
+          if [ "${PLAY_SIGNING_CONFIGURED:-false}" = "true" ]; then
+            jarsigner -verify "$AAB" >/dev/null
+            echo "SIGNED_AND_JARSIGNER_VERIFIED" | tee artifacts/play-release-signing-state.txt
+          else
+            echo "UNSIGNED_NOT_FOR_GOOGLE_PLAY: configure the four PLAY_UPLOAD_* GitHub Actions secrets and rebuild." | tee artifacts/play-release-signing-state.txt
+          fi
+          sha256sum "$AAB" > "$AAB.sha256"
+          cat "$AAB.sha256"
+
+      - name: Upload Android release candidate artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ALMOFEED-Play-Release-Candidate
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/debug/app-debug.apk.sha256
+            app/build/outputs/bundle/release/app-release.aab
+            app/build/outputs/bundle/release/app-release.aab.sha256
+            artifacts/play-release-signing-state.txt
+            PLAY_STORE_RELEASE_CHECKLIST_AR.md
+            PRIVACY_POLICY_AR.md
+            docs/privacy-policy-ar.html
+            ENABLE_GITHUB_PAGES_AR.md
+            docs/RELEASE_SECURITY_AND_COPYRIGHT_AR.md
+            SOURCE_INTEGRITY.txt
+            README_AR.md
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload visual QA evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ALMOFEED-Math-Assurance-Visual-Evidence
+          path: |
+            artifacts/math-rendering-mobile-360.png
+            artifacts/math-rendering-mobile-360.json
+          if-no-files-found: error
+          retention-days: 14

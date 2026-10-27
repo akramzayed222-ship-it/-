@@ -1,0 +1,38 @@
+name: Publish AL-MOFEED Privacy Policy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/privacy-policy-ar.html'
+      - '.github/workflows/deploy-privacy-policy.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out policy source
+        uses: actions/checkout@v4
+      - name: Confirm GitHub Pages has been enabled by repository owner
+        uses: actions/configure-pages@v5
+        with:
+          enablement: false
+      - name: Upload policy site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - name: Publish policy site
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,182 @@
+name: AL-MOFEED Protected Google Play Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_release:
+        description: "I confirm this is an intentional production signing run from main."
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: almofeed-protected-play-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Validate and sign production AAB
+    if: github.ref == 'refs/heads/main' && inputs.confirm_release == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment:
+      name: play-production
+
+    steps:
+      - name: Checkout the protected main branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Android SDK packages
+        run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Verify branch, source integrity, release security and math bank
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/main"
+          grep -q 'minifyEnabled true' app/build.gradle
+          grep -q 'shrinkResources true' app/build.gradle
+          grep -q "androidx.webkit:webkit:1.15.0" app/build.gradle
+          grep -q 'new WebViewAssetLoader.Builder()' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'settings.setAllowFileAccess(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'settings.setAllowContentAccess(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'settings.setDomStorageEnabled(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'cookieManager.setAcceptCookie(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'WebView.setWebContentsDebuggingEnabled(false)' app/src/main/java/com/almofeed/math/MainActivity.java
+          grep -q 'versionCode 10' app/build.gradle
+          grep -q "versionName '4.1.5'" app/build.gradle
+          grep -q '© 2026 المفيد في الرياضيات' app/src/main/assets/index.html
+          test -s docs/privacy-policy-ar.html
+          test -s docs/RELEASE_SECURITY_AND_COPYRIGHT_AR.md
+
+          python3 - <<'PYCODE'
+          import re
+          from pathlib import Path
+
+          source = Path("ALMOFEED_World_Class_Professional.html").read_text(encoding="utf-8")
+          asset = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
+
+          def protected(document, label):
+              scripts = re.findall(r'<script\b[^>]*>(.*?)</script\s*>', document, flags=re.I | re.S)
+              main = next((item for item in scripts if "const MASTER_CHALLENGES=[" in item), None)
+              if main is None:
+                  raise SystemExit(label + ": quiz script missing")
+              start = main.find("let useEasternDigits=true;")
+              bank_start = main.find("const MASTER_CHALLENGES=[", start)
+              bank_end = main.find(chr(10) + "];", bank_start)
+              if min(start, bank_start, bank_end) < 0:
+                  raise SystemExit(label + ": protected regions not found")
+              return main[start:bank_start], main[bank_start:bank_end+3]
+
+          src_parser, src_bank = protected(source, "Master source")
+          app_parser, app_bank = protected(asset, "Android asset")
+          if src_parser != app_parser or src_bank != app_bank:
+              raise SystemExit("FAIL: protected math runtime/question bank differs from source")
+          count = len(re.findall(r"^\s*\{level:", app_bank, flags=re.M))
+          if count != 20:
+              raise SystemExit(f"FAIL: expected 20 questions, found {count}")
+          print(f"PASS: protected math runtime and all {count} questions are unchanged.")
+          PYCODE
+
+          tmp="$(mktemp -d)"
+          export QA_JS_DIR="$tmp"
+          python3 - <<'PYCODE'
+          import os, re
+          from pathlib import Path
+          html = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
+          blocks = [b for b in re.findall(r'<script\b[^>]*>(.*?)</script\s*>', html, flags=re.I | re.S) if b.strip()]
+          if not blocks:
+              raise SystemExit("No JavaScript found")
+          for i, block in enumerate(blocks, 1):
+              (Path(os.environ["QA_JS_DIR"]) / f"inline-{i}.js").write_text(block, encoding="utf-8")
+          PYCODE
+          for file in "$tmp"/*.js; do node --check "$file"; done
+          rm -rf "$tmp"
+
+      - name: Run browser math layout and interaction checks
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.64.1
+          npx playwright install --with-deps chromium
+          node .github/scripts/test-math-browser.cjs
+
+      - name: Build signed Play App Bundle using protected environment secrets
+        shell: bash
+        env:
+          PLAY_PROD_UPLOAD_KEYSTORE_BASE64: ${{ secrets.PLAY_PROD_UPLOAD_KEYSTORE_BASE64 }}
+          PLAY_PROD_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.PLAY_PROD_UPLOAD_KEYSTORE_PASSWORD }}
+          PLAY_PROD_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_PROD_UPLOAD_KEY_ALIAS }}
+          PLAY_PROD_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_PROD_UPLOAD_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in PLAY_PROD_UPLOAD_KEYSTORE_BASE64 PLAY_PROD_UPLOAD_KEYSTORE_PASSWORD PLAY_PROD_UPLOAD_KEY_ALIAS PLAY_PROD_UPLOAD_KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "Missing required environment secret: $name" >&2
+              exit 1
+            fi
+          done
+
+          KEYSTORE_PATH="$RUNNER_TEMP/almofeed-play-upload.jks"
+          printf '%s' "$PLAY_PROD_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          test -s "$KEYSTORE_PATH"
+
+          # Confirm that the requested alias exists before invoking Gradle.
+          keytool -list -keystore "$KEYSTORE_PATH" \
+            -storepass "$PLAY_PROD_UPLOAD_KEYSTORE_PASSWORD" \
+            -alias "$PLAY_PROD_UPLOAD_KEY_ALIAS" >/dev/null
+
+          export PLAY_UPLOAD_KEYSTORE="$KEYSTORE_PATH"
+          export PLAY_UPLOAD_KEYSTORE_PASSWORD="$PLAY_PROD_UPLOAD_KEYSTORE_PASSWORD"
+          export PLAY_UPLOAD_KEY_ALIAS="$PLAY_PROD_UPLOAD_KEY_ALIAS"
+          export PLAY_UPLOAD_KEY_PASSWORD="$PLAY_PROD_UPLOAD_KEY_PASSWORD"
+
+          gradle --no-daemon clean bundleRelease
+
+          AAB="app/build/outputs/bundle/release/app-release.aab"
+          test -s "$AAB"
+          unzip -t "$AAB" >/dev/null
+          jarsigner -verify "$AAB" >/dev/null
+          mkdir -p artifacts
+          echo "SIGNED_AND_JARSIGNER_VERIFIED" > artifacts/play-release-signing-state.txt
+          sha256sum "$AAB" > artifacts/play-release-aab.sha256
+          cat artifacts/play-release-signing-state.txt
+          cat artifacts/play-release-aab.sha256
+
+          # The ephemeral runner is discarded after this job; remove the temporary keystore file.
+          rm -f "$KEYSTORE_PATH"
+
+      - name: Upload signed bundle for Play Console submission
+        uses: actions/upload-artifact@v4
+        with:
+          name: ALMOFEED-SIGNED-PLAY-AAB
+          path: |
+            app/build/outputs/bundle/release/app-release.aab
+            artifacts/play-release-signing-state.txt
+            artifacts/play-release-aab.sha256
+            PLAY_STORE_RELEASE_CHECKLIST_AR.md
+            docs/privacy-policy-ar.html
+            docs/RELEASE_SECURITY_AND_COPYRIGHT_AR.md
+            docs/PLAY_PRODUCTION_SECRETS_SETUP_AR.md
+          if-no-files-found: error
+          retention-days: 3

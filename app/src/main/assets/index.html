@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>المفيد - تحدي القوى والجذور</title>
+  <meta name="theme-color" content="#030712">
+        <style>
+    *{font-family:'Tajawal',sans-serif;-webkit-tap-highlight-color:transparent;user-select:none;box-sizing:border-box}
+    body{background-color:#030712;color:#f9fafb;margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+    /* === 1. SVG Radical Vector Engine - Zero Gap === */
+    .ar-root-container{display:inline-flex;align-items:flex-start;direction:rtl;position:relative;margin:2px 4px;vertical-align:middle;unicode-bidi:isolate}
+    .ar-root-index{position:absolute;top:-0.55em;right:0.12em;font-size:0.58em;font-weight:900;color:#38bdf8;z-index:3;unicode-bidi:isolate;line-height:1}
+    .ar-root-hook-svg{height:1.38em;width:0.68em;display:block;overflow:visible;flex-shrink:0;margin:0}
+    .ar-root-bar{height:2.6px;background-color:currentColor;width:100%;display:block;margin:0;padding:0;line-height:0;transform:translateY(0)}
+    .ar-root-content{padding:3px 8px 0 5px;white-space:nowrap;unicode-bidi:isolate;display:inline-flex;align-items:baseline}
+    .ar-root-coeff{font-size:1.2em;font-weight:900;color:#38bdf8;margin-left:8px;unicode-bidi:isolate;display:inline-block}
+    /* === 2. BiDi & Exponent Core === */
+    .math-binary{display:inline-flex;align-items:center;gap:7px;vertical-align:middle;direction:rtl;unicode-bidi:isolate}
+    .math-op{font-weight:900;color:#fbbf24;unicode-bidi:isolate}
+    .math-op-minus{color:#fb7185}
+    .math-fraction{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 5px;unicode-bidi:isolate}
+    .math-num{border-bottom:2.5px solid currentColor;padding:0 6px 3px 6px;text-align:center;width:100%;unicode-bidi:isolate}
+    .math-den{padding:3px 6px 0 6px;text-align:center;width:100%;unicode-bidi:isolate}
+    .math-power{display:inline-flex;align-items:baseline;direction:rtl;margin:0 2px;unicode-bidi:isolate;gap:1px}
+    .math-base{display:inline-block;unicode-bidi:isolate;font-weight:900}
+    .math-exponent{font-size:0.82em;font-weight:800;color:#34d399;vertical-align:0.55em;margin-right:2px;direction:rtl;unicode-bidi:isolate;display:inline-flex;align-items:center;background:rgba(16,185,129,0.10);border:1px solid rgba(52,211,153,0.22);border-radius:6px;padding:1px 5px}
+    .exp-frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:0.90em;unicode-bidi:isolate;line-height:1}
+    .exp-num{border-bottom:1.6px solid currentColor;padding:0 2px 1px;color:#34d399;unicode-bidi:isolate}
+    .exp-den{padding:1px 2px 0;color:#34d399;unicode-bidi:isolate}
+    .exp-minus{color:#fb7185;font-weight:900;margin-left:1px;unicode-bidi:isolate}
+    /* === 4. وضوح الخيارات - إصلاح عالمي === */
+    #optionsGrid button{font-size:1.18rem;min-height:82px !important;padding:14px !important;background:#1e293b !important;border:1.8px solid #334155 !important;border-radius:18px !important;transition:all 0.15s}
+    #optionsGrid button:hover{background:#253249 !important}
+    #optionsGrid .math-power{font-size:1.6em !important}
+    #optionsGrid .math-exponent{font-size:1.02em !important;color:#6ee7b7 !important;background:rgba(16,185,129,0.20) !important;border:1.6px solid rgba(52,211,153,0.45) !important;border-radius:9px !important;padding:3px 8px !important;margin-right:6px !important;box-shadow:0 0 10px rgba(16,185,129,0.15)}
+    #optionsGrid .exp-frac{min-width:30px;background:rgba(16,185,129,0.20);border:1.6px solid rgba(52,211,153,0.45);border-radius:9px;padding:2px 5px}
+    #optionsGrid .exp-num,#optionsGrid .exp-den{font-size:0.9em !important;color:#ecfdf5 !important}
+    #optionsGrid .ar-root-container{font-size:1.18em !important}
+    #mathDisplay{font-size:2.3rem !important;background:#020617 !important}
+    #mathDisplay .math-power{font-size:1.12em}
+    #mathDisplay .math-exponent{font-size:0.78em;background:rgba(16,185,129,0.14);border:1px solid rgba(52,211,153,0.30);padding:2px 8px;border-radius:8px}
+    @keyframes popIn{0%{opacity:0;transform:scale(0.96) translateY(6px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+    .animate-pop{animation:popIn 0.2s cubic-bezier(0.16,1,0.3,1) forwards}
+    .modal-backdrop{backdrop-filter:blur(10px);background:rgba(3,7,18,0.88)}
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-0\.5{margin-bottom:0.125rem}.mb-1{margin-bottom:0.25rem}.mb-1\.5{margin-bottom:0.375rem}.mb-2\.5{margin-bottom:0.625rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mt-3{margin-top:0.75rem}.mt-4{margin-top:1rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-1\.5{height:0.375rem}.h-10{height:2.5rem}.h-16{height:4rem}.h-4{height:1rem}.h-8{height:2rem}.h-full{height:100%}.min-h-\[102px\]{min-height:102px}.min-h-\[82px\]{min-height:82px}.w-10{width:2.5rem}.w-16{width:4rem}.w-4{width:1rem}.w-8{width:2rem}.w-\[5\%\]{width:5%}.w-full{width:100%}.max-w-lg{max-width:32rem}.max-w-md{max-width:28rem}.flex-1{flex:1 1 0%}.cursor-pointer{cursor:pointer}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-start{justify-content:flex-start}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-\[24px\]{border-radius:24px}.rounded-full{border-radius:9999px}.rounded-md{border-radius:0.375rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-amber-500\/20{border-color:rgb(245 158 11 / 0.2)}.border-amber-500\/30{border-color:rgb(245 158 11 / 0.3)}.border-emerald-500\/20{border-color:rgb(16 185 129 / 0.2)}.border-emerald-500\/30{border-color:rgb(16 185 129 / 0.3)}.border-emerald-500\/40{border-color:rgb(16 185 129 / 0.4)}.border-sky-500\/20{border-color:rgb(14 165 233 / 0.2)}.border-sky-500\/30{border-color:rgb(14 165 233 / 0.3)}.border-sky-500\/40{border-color:rgb(14 165 233 / 0.4)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-700\/60{border-color:rgb(51 65 85 / 0.6)}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.border-emerald-400{--tw-border-opacity:1;border-color:rgb(52 211 153 / var(--tw-border-opacity, 1))}.border-rose-400{--tw-border-opacity:1;border-color:rgb(251 113 133 / var(--tw-border-opacity, 1))}.bg-amber-500\/15{background-color:rgb(245 158 11 / 0.15)}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-emerald-500\/20{background-color:rgb(16 185 129 / 0.2)}.bg-sky-500{--tw-bg-opacity:1;background-color:rgb(14 165 233 / var(--tw-bg-opacity, 1))}.bg-sky-500\/15{background-color:rgb(14 165 233 / 0.15)}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-800\/90{background-color:rgb(30 41 59 / 0.9)}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-slate-900\/80{background-color:rgb(15 23 42 / 0.8)}.bg-slate-900\/90{background-color:rgb(15 23 42 / 0.9)}.bg-slate-950{--tw-bg-opacity:1;background-color:rgb(2 6 23 / var(--tw-bg-opacity, 1))}.bg-slate-950\/80{background-color:rgb(2 6 23 / 0.8)}.bg-slate-950\/95{background-color:rgb(2 6 23 / 0.95)}.bg-slate-800\/80{background-color:rgb(30 41 59 / 0.8)}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-emerald-600\/80{background-color:rgb(5 150 105 / 0.8)}.bg-rose-600{--tw-bg-opacity:1;background-color:rgb(225 29 72 / var(--tw-bg-opacity, 1))}.bg-gradient-to-l{background-image:linear-gradient(to left, var(--tw-gradient-stops))}.bg-gradient-to-tr{background-image:linear-gradient(to top right, var(--tw-gradient-stops))}.from-emerald-400{--tw-gradient-from:#34d399 var(--tw-gradient-from-position);--tw-gradient-to:rgb(52 211 153 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-emerald-500{--tw-gradient-from:#10b981 var(--tw-gradient-from-position);--tw-gradient-to:rgb(16 185 129 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-sky-500{--tw-gradient-from:#0ea5e9 var(--tw-gradient-from-position);--tw-gradient-to:rgb(14 165 233 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-slate-950{--tw-gradient-from:#020617 var(--tw-gradient-from-position);--tw-gradient-to:rgb(2 6 23 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-emerald-500{--tw-gradient-to:#10b981 var(--tw-gradient-to-position)}.to-sky-400{--tw-gradient-to:#38bdf8 var(--tw-gradient-to-position)}.to-sky-500{--tw-gradient-to:#0ea5e9 var(--tw-gradient-to-position)}.to-slate-800{--tw-gradient-to:#1e293b var(--tw-gradient-to-position)}.p-1{padding:0.25rem}.p-1\.5{padding:0.375rem}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-7{padding-top:1.75rem;padding-bottom:1.75rem}.pb-24{padding-bottom:6rem}.pt-1{padding-top:0.25rem}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-\[12px\]{font-size:12px}.text-\[9px\]{font-size:9px}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-base{font-size:1rem;line-height:1.5rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.tracking-tight{letter-spacing:-0.025em}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-emerald-300{--tw-text-opacity:1;color:rgb(110 231 183 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-sky-300{--tw-text-opacity:1;color:rgb(125 211 252 / var(--tw-text-opacity, 1))}.text-sky-400{--tw-text-opacity:1;color:rgb(56 189 248 / var(--tw-text-opacity, 1))}.text-slate-100{--tw-text-opacity:1;color:rgb(241 245 249 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-950{--tw-text-opacity:1;color:rgb(2 6 23 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.opacity-40{opacity:0.4}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.ring-2{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.ring-emerald-400\/40{--tw-ring-color:rgb(52 211 153 / 0.4)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.will-change-\[width\]{will-change:width}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-700\/80:hover{background-color:rgb(51 65 85 / 0.8)}.hover\:text-emerald-400:hover{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.hover\:opacity-90:hover{opacity:0.9}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.active\:scale-\[0\.98\]:active{--tw-scale-x:0.98;--tw-scale-y:0.98;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@media (min-width: 640px){.sm\:items-center{align-items:center}.sm\:p-4{padding:1rem}.sm\:p-5{padding:1.25rem}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}}</style><style id="almofeed-android-font-fix">
+  :root { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  html, body { max-width: 100%; overflow-x: hidden; }
+  #mathDisplay {
+    font-size: clamp(1.3rem, 5.8vw, 1.75rem) !important;
+    line-height: 1.35 !important;
+    max-width: 100%;
+    overflow-wrap: normal;
+  }
+  #mathDisplay .math-power { font-size: 1.12em !important; }
+  #mathDisplay .math-exponent {
+    font-size: .82em !important;
+    line-height: 1 !important;
+    position: relative !important;
+    top: calc(-.08em - 2mm) !important;
+    padding: 1px 3px !important;
+    margin-right: 2px !important;
+    border-width: 1px !important;
+    box-shadow: none !important;
+  }
+  #optionsGrid button {
+    font-size: clamp(1rem, 4.2vw, 1.18rem) !important;
+    min-height: 68px !important;
+    min-width: 0;
+    padding: 10px !important;
+    line-height: 1.3 !important;
+    overflow-wrap: anywhere;
+  }
+  #optionsGrid .math-power { font-size: 1.16em !important; }
+  #optionsGrid .math-exponent {
+    font-size: .82em !important;
+    line-height: 1 !important;
+    position: relative !important;
+    top: calc(-.08em - 2mm) !important;
+    padding: 1px 3px !important;
+    margin-right: 2px !important;
+    border-width: 1px !important;
+    box-shadow: none !important;
+  }
+  #optionsGrid .exp-frac { min-width: 0; padding: 1px 3px; }
+  #optionsGrid .ar-root-container { font-size: 1em !important; }
+  .math-fraction { margin: 0 3px; }
+  .math-num, .math-den { padding-left: 4px; padding-right: 4px; }
+  .math-base { white-space: nowrap; }
+  .math-coefficient { display: inline-block; font-weight: 900; margin-inline-end: .03em; }
+  .af-q .qmath { font-size: clamp(1rem, 4.4vw, 1.25rem) !important; }
+  @media (max-width: 360px) {
+    #optionsGrid button { padding: 8px !important; min-height: 62px !important; }
+    #mathDisplay { font-size: clamp(1.2rem, 5.5vw, 1.5rem) !important; }
+  }
+</style></head>
+<body class="p-3 sm:p-4 pb-24 w-full max-w-lg mx-auto">
+  <header class="w-full flex items-center justify-between py-2.5 px-3 bg-slate-900/90 border border-slate-800 rounded-2xl mb-3 shadow-lg">
+    <div class="flex items-center gap-2">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-950 to-slate-800 border border-sky-500/40 p-1 flex items-center justify-center shadow"><svg viewBox="0 0 512 512" class="w-full h-full"><path d="M400 240 L380 240 L350 380 L320 160 L110 160" fill="none" stroke="#38bdf8" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"></path><text x="375" y="195" font-size="64" font-weight="bold" fill="#38bdf8" text-anchor="middle">٣</text><text x="215" y="295" font-size="105" font-weight="900" fill="#f8fafc" text-anchor="middle">س</text><text x="155" y="225" font-size="60" font-weight="bold" fill="#10b981" text-anchor="middle">ن</text></svg></div>
+      <div><h1 class="text-xs sm:text-sm font-black text-white tracking-tight flex items-center gap-1">المفيد <span class="text-[9px] px-1 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">رياضيات</span></h1><p class="text-[10px] text-slate-400">تحدّي القوى والجذور</p></div>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button id="soundToggleBtn" class="p-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-emerald-400 border border-slate-700/60 active:scale-95 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"></path></svg></button>
+      <button id="numeralToggleBtn" class="px-2 py-1.5 rounded-xl bg-slate-800 text-[11px] font-bold text-amber-400 border border-slate-700/60 active:scale-95 transition">١٢٣</button>
+    </div>
+  </header>
+
+  <div class="w-full bg-slate-900/80 border border-slate-800 rounded-2xl px-3 py-2.5 mb-2.5 flex items-center justify-between text-xs"><div class="flex items-center gap-1.5"><span id="levelBadge" class="px-2 py-0.5 bg-sky-500/15 border border-sky-500/30 text-sky-300 font-extrabold rounded-md text-[11px]">المستوى ١</span><span id="streakBadge" class="px-1.5 py-0.5 bg-amber-500/15 border border-amber-500/30 text-amber-300 font-extrabold rounded-md text-[10px]">🔥 ٠</span></div><div class="flex items-center gap-3 text-[11px]"><div class="text-slate-400">السؤال: <span id="questionCounter" class="font-bold text-white">١ / ٢٠</span></div><div class="text-amber-400 font-black">النقاط: <span id="scoreDisplay">٠</span></div></div></div>
+  <div class="w-full bg-slate-800/90 h-1.5 rounded-full overflow-hidden mb-3"><div id="progressBar" class="bg-gradient-to-l from-emerald-400 to-sky-400 h-full w-[5%] transition-all duration-300 will-change-[width]" style="width: 100%;"></div></div>
+
+  <main class="w-full flex-1 flex flex-col justify-start">
+    <section id="arenaCard" class="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-2xl flex flex-col justify-between hidden">
+      <div><div class="flex justify-between items-center mb-1.5"><span id="topicTitle" class="text-[11px] font-bold text-emerald-400">جمع الجذور المتشابهة</span><span id="timerTag" class="text-[10px] font-mono text-slate-400">⏱️ ٠ ثانية</span></div>
+        <h2 id="questionPrompt" class="text-slate-100 text-sm sm:text-base font-bold leading-snug mb-3">احسب ناتج تبسيط وجمع الجذور الصماء التالية:</h2>
+        <div id="mathDisplay" class="border border-slate-800 rounded-2xl py-7 px-3 mb-4 flex items-center justify-center text-center text-2xl sm:text-3xl font-bold text-sky-300 shadow-inner min-h-[102px]" dir="rtl"><span class="math-binary"><span><span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start"><svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content"><span style="unicode-bidi:isolate">١٢</span></span></span></span></span><span class="math-op ">+</span><span><span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start"><svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content"><span style="unicode-bidi:isolate">٢٧</span></span></span></span></span></span></div>
+        <div id="optionsGrid" class="grid grid-cols-2 gap-3 mb-3" dir="rtl"><button class="rounded-2xl border border-emerald-400 bg-emerald-600 text-white font-bold ring-2 ring-emerald-400/40 flex items-center justify-center min-h-[82px]"><span style="display:inline-flex;align-items:center"><span class="ar-root-coeff"><span style="unicode-bidi:isolate">٥</span></span><span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start"><svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content"><span style="unicode-bidi:isolate">٣</span></span></span></span></button><button class="rounded-2xl border border-slate-800 bg-slate-800/80 hover:bg-slate-700/80 active:scale-95 transition text-base font-bold text-slate-100 flex items-center justify-center opacity-40 pointer-events-none"><span style="display:inline-flex;align-items:center"><span class="ar-root-coeff"><span style="unicode-bidi:isolate">٩</span></span><span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start"><svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content"><span style="unicode-bidi:isolate">٣</span></span></span></span></button><button class="rounded-2xl border border-slate-800 bg-slate-800/80 hover:bg-slate-700/80 active:scale-95 transition text-base font-bold text-slate-100 flex items-center justify-center opacity-40 pointer-events-none"><span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start"><svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content"><span style="unicode-bidi:isolate">٣٩</span></span></span></span></button><button class="rounded-2xl border border-slate-800 bg-slate-800/80 hover:bg-slate-700/80 active:scale-95 transition text-base font-bold text-slate-100 flex items-center justify-center opacity-40 pointer-events-none"><span style="display:inline-flex;align-items:center"><span class="ar-root-coeff"><span style="unicode-bidi:isolate">٦</span></span><span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start"><svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content"><span style="unicode-bidi:isolate">٣</span></span></span></span></button></div></div>
+      <div id="explanationBox" class="p-3.5 bg-slate-950/95 border border-slate-800 rounded-2xl mb-3 text-xs leading-relaxed animate-pop" dir="rtl"><div class="text-emerald-400 font-bold mb-1.5 flex items-center gap-1.5"><span>💡</span> <span id="ruleContent">تبسيط كل جذر ثم جمع المعاملات</span></div><div id="explanationText" class="text-slate-300 font-medium"><span class="math-binary"><span><span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start"><svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content"><span style="unicode-bidi:isolate">١٢</span></span></span></span></span><span class="math-op">=</span><span><span class="math-binary"><span><span style="display:inline-flex;align-items:center"><span class="ar-root-coeff"><span style="unicode-bidi:isolate">٢</span></span><span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start"><svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content"><span style="unicode-bidi:isolate">٣</span></span></span></span>، و<span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start"><svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content"><span style="unicode-bidi:isolate">٢٧</span></span></span></span></span><span class="math-op">=</span><span><span class="math-binary"><span><span style="display:inline-flex;align-items:center"><span class="ar-root-coeff"><span style="unicode-bidi:isolate">٣</span></span><span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start"><svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content"><span style="unicode-bidi:isolate">٣</span></span></span></span>. إذن: <span style="unicode-bidi:isolate">٢</span>+<span style="unicode-bidi:isolate">٣</span></span><span class="math-op">=</span><span><span style="display:inline-flex;align-items:center"><span class="ar-root-coeff"><span style="unicode-bidi:isolate">٥</span></span><span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start"><svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content"><span style="unicode-bidi:isolate">٣</span></span></span></span>.</span></span></span></span></span></span></div></div>
+      <button id="nextBtn" class="w-full py-3 bg-gradient-to-l from-emerald-500 to-sky-500 text-slate-950 font-black text-sm rounded-xl transition active:scale-[0.98] shadow-lg">الانتقال للتحدي التالي ←</button>
+    </section>
+    <section id="victoryCard" class="bg-slate-900 border border-slate-800 rounded-3xl p-5 text-center shadow-2xl animate-pop"><div class="w-16 h-16 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-black">✓</div><h2 class="text-xl font-black text-white mb-1">أحسنت! أتممت التحدي بنجاح</h2><p class="text-slate-400 text-xs mb-5">منصة المفيد التعليمية — سلسلة القوى والجذور</p><div class="grid grid-cols-2 gap-2.5 mb-5"><div class="p-3 bg-slate-950 rounded-xl border border-slate-800"><span class="text-[11px] text-slate-400 block mb-0.5">النقاط الكلية</span><span id="finalScore" class="text-xl font-black text-amber-400">٥٢٤</span></div><div class="p-3 bg-slate-950 rounded-xl border border-slate-800"><span class="text-[11px] text-slate-400 block mb-0.5">نسبة الدقة</span><span id="accuracyDisplay" class="text-xl font-black text-emerald-400">٠%</span></div></div><div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-xs text-slate-300 mb-5 text-right"><span class="text-sky-400 font-bold block mb-1">تقييم المفيد التربوي:</span><span id="pedagogicalFeedback">أداء عالمي المستوى - إتقان تام لقوانين القوى والجذور.</span></div><button id="restartBtn" class="w-full py-3.5 bg-gradient-to-l from-emerald-500 to-sky-500 text-slate-950 font-black rounded-xl transition">إعادة التحدي 🔄</button></section>
+    <p class="text-center text-[10px] text-slate-500 mt-3">المفيد في الرياضيات — تعلّم بالممارسة والتحدّي</p>
+  </main>
+
+
+
+<script>
+class SoundEngine{constructor(){this.ctx=null;this.enabled=true}init(){if(!this.ctx){const AC=window.AudioContext||window.webkitAudioContext;if(AC)this.ctx=new AC()}if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume()}playTone(f,t='sine',d=0.15,g=0.2){if(!this.enabled)return;try{this.init();if(!this.ctx)return;const o=this.ctx.createOscillator(),ga=this.ctx.createGain();o.type=t;o.frequency.setValueAtTime(f,this.ctx.currentTime);ga.gain.setValueAtTime(g,this.ctx.currentTime);ga.gain.exponentialRampToValueAtTime(0.0001,this.ctx.currentTime+d);o.connect(ga);ga.connect(this.ctx.destination);o.start();o.stop(this.ctx.currentTime+d)}catch(_){}}playCorrect(){this.playTone(587.33,'triangle',0.08,0.25);setTimeout(()=>this.playTone(880,'triangle',0.18,0.25),80)}playWrong(){this.playTone(220,'sawtooth',0.15,0.25);setTimeout(()=>this.playTone(180,'sawtooth',0.22,0.25),90)}playClick(){this.playTone(420,'sine',0.04,0.08)}playVictory(){[523.25,659.25,783.99,1046.5].forEach((f,i)=>setTimeout(()=>this.playTone(f,'triangle',0.22,0.2),i*110))}}
+const audio=new SoundEngine();
+let useEasternDigits=true;
+const toEastern=str=>{const e=['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];return String(str).replace(/\d/g,d=>e[parseInt(d,10)])};
+const applyNumeralsSafely=htmlStr=>htmlStr.replace(/(<[^>]+>)|([0-9]+)/g,(m,tag,num)=>{if(tag)return tag;return `<span style="unicode-bidi:isolate">${useEasternDigits?toEastern(num):num}</span>`});
+
+// === محرك التحليل الطوبولوجي - إصلاح جذري لخلل 5^(س+2) ===
+function splitTopLevel(expr, delimiters){
+  let depth=0;
+  for(let i=0;i<expr.length;i++){
+    const c=expr[i];
+    if(c==='(') depth++;
+    else if(c===')') depth--;
+    else if(depth===0){
+      for(const delim of delimiters){
+        if(expr.substr(i, delim.length)===delim){
+          return {left: expr.slice(0,i), op: delim.trim(), right: expr.slice(i+delim.length), index:i};
+        }
+      }
+    }
+  }
+  return null;
+}
+
+const renderExpTag=(rawExp)=>{
+  let exp=rawExp.trim();
+  let isNeg=false;
+  if(exp.startsWith('-')||exp.startsWith('−')||exp.startsWith('–')){isNeg=true;exp=exp.replace(/^[-−–]/,'').trim()}
+  if(exp.includes('/')){
+    const parts=exp.split('/');
+    const minus=isNeg?'<span class="exp-minus">−</span>':'';
+    return `<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">${minus}<span class="exp-frac"><span class="exp-num">${parseMath(parts[0].trim())}</span><span class="exp-den">${parseMath(parts[1].trim())}</span></span></span></sup>`;
+  }
+  const minus=isNeg?'<span class="exp-minus">−</span>':'';
+  // إذا كان الأس يحتوي عملية ثنائية، حلله كرياضياً داخل الـ sup
+  if(/[+\-×÷]/.test(exp) || exp.includes(' = ')){
+    return `<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">${minus}${parseMath(exp)}</span></sup>`;
+  }
+  return `<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">${minus}${applyNumeralsSafely(exp)}</span></sup>`;
+};
+
+const buildRadicalHtml=(idx,inner)=>{
+  const parsedInner=parseMath(inner);
+  const indexTag=idx?`<span class="ar-root-index">${applyNumeralsSafely(idx)}</span>`:'';
+  return `<span class="ar-root-container"><span style="position:relative;display:inline-flex;align-items:flex-start">${indexTag}<svg class="ar-root-hook-svg" viewBox="0 0 16 34" fill="none"><path d="M 15 11 L 11 11 L 6 32 L 0.5 1.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span style="display:inline-flex;flex-direction:column;align-items:stretch"><span class="ar-root-bar"></span><span class="ar-root-content">${parsedInner}</span></span></span>`;
+};
+
+const parseMathUnit=(expr)=>{
+  if(!expr) return '';
+  let out=expr.trim();
+
+  // Keep numeric coefficients outside the variable's exponent, e.g. 5س^0 = 5 × (س^0).
+  // The grouped base (9س)^0 remains grouped by parseMath's parenthesized-power path.
+  out=out.replace(/([0-9٠-٩]+)\s*([أ-ي])\^(\((.*?)\)|-?[^\s\+\×\÷\=\)]+)/g,(_m,coeff,variable,p1,p2)=>{
+    const expContent=p2!==undefined?p2:p1;
+    const expHtml=p2!==undefined
+      ? `<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(${parseMath(expContent)})</span></sup>`
+      : renderExpTag(expContent);
+    return `<span class="math-coefficient">${applyNumeralsSafely(coeff)}</span><span class="math-power"><span class="math-base">${applyNumeralsSafely(variable)}</span>${expHtml}</span>`;
+  });
+
+  // Build coefficient and radical together before HTML nesting makes regex parsing unsafe.
+  out=out.replace(/([0-9٠-٩]+)\s*جذر\[(.*?)\]\((.*?)\)/g,(_m,coeff,idx,c)=>
+    `<span style="display:inline-flex;align-items:center"><span class="ar-root-coeff">${applyNumeralsSafely(coeff)}</span>${buildRadicalHtml(idx,c)}</span>`);
+  out=out.replace(/([0-9٠-٩]+)\s*جذر\((.*?)\)/g,(_m,coeff,c)=>
+    `<span style="display:inline-flex;align-items:center"><span class="ar-root-coeff">${applyNumeralsSafely(coeff)}</span>${buildRadicalHtml(null,c)}</span>`);
+  out=out.replace(/جذر\[(.*?)\]\((.*?)\)/g,(_m,i,c)=>buildRadicalHtml(i,c));
+  out=out.replace(/جذر\((.*?)\)/g,(_m,c)=>buildRadicalHtml(null,c));
+
+  // Parenthesized base raised to a power.
+  out=out.replace(/\(([^()]+)\)\^(\((.*?)\)|-?[^\s\+\×\÷\=\)]+)/g,(_m,inner,p1,p2)=>{
+    const pInner=parseMath(inner);
+    const expContent=p2!==undefined?p2:p1;
+    const expHtml=p2!==undefined
+      ? `<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(${parseMath(expContent)})</span></sup>`
+      : renderExpTag(expContent);
+    return `<span class="math-power"><span class="math-base">(${pInner})</span>${expHtml}</span>`;
+  });
+
+  // A base raised to an exponent, including negative and rational exponents.
+  out=out.replace(/([أ-يa-zA-Z\d\)]+)\^(\((.*?)\)|-?[^\s\+\×\÷\=\)]+)/g,(_m,base,p1,p2)=>{
+    const expContent=p2!==undefined?p2:p1;
+    const expHtml=p2!==undefined
+      ? `<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(${parseMath(expContent)})</span></sup>`
+      : renderExpTag(expContent);
+    return `<span class="math-power"><span class="math-base">${applyNumeralsSafely(base)}</span>${expHtml}</span>`;
+  });
+  return applyNumeralsSafely(out);
+};
+
+const parseMath=(expr)=>{
+  if(!expr) return '';
+  let raw=expr.trim();
+
+  // Stable explicit path for the reported radical-square question.
+  // This avoids regex ambiguity between the outer power parentheses and radical parentheses.
+  const radicalSumSquare=raw.match(/^\\(\\s*جذر\\(([^()]+)\\)\\s*\\+\\s*جذر\\(([^()]+)\\)\\s*\\)\\s*\\^\\s*2$/);
+  if(radicalSumSquare){
+    const left=radicalSumSquare[1].trim();
+    const right=radicalSumSquare[2].trim();
+    const base=`جذر(${left}) + جذر(${right})`;
+    return `<span class="math-power"><span class="math-base">( ${parseMath(base)} )</span><sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">2</span></sup></span>`;
+  }
+
+  // Stable explicit path for a sum ending in a coefficient times a radical (e.g. 7 + 2√10).
+  const radicalSum=raw.match(/^(.+?)\\s+\\+\\s+([0-9٠-٩]+)\\s*جذر\\(([^()]+)\\)$/);
+  if(radicalSum){
+    return `<span class="math-binary"><span>${parseMath(radicalSum[1])}</span><span class="math-op">+</span><span>${parseMathUnit(radicalSum[2]+` جذر(${radicalSum[3]})`)}</span></span>`;
+  }
+
+  // Handle a complete parenthesized base raised to a power, including nested radicals.
+  if(raw.startsWith("(")){
+    let depth=0, closeIndex=-1;
+    for(let i=0;i<raw.length;i++){
+      if(raw[i]==="(") depth++;
+      else if(raw[i]===")"){
+        depth--;
+        if(depth===0){ closeIndex=i; break; }
+      }
+    }
+    if(closeIndex>0 && raw[closeIndex+1]==="^"){
+      const baseExpr=raw.slice(1,closeIndex).trim();
+      const exponent=raw.slice(closeIndex+2).trim();
+      const exponentHasTopLevelOperator=!!splitTopLevel(exponent, [" = ", " + ", " - ", " × ", " ÷ "]);
+      if(baseExpr && exponent && !exponentHasTopLevelOperator){
+        let exponentHtml;
+        if(exponent.startsWith("(") && exponent.endsWith(")")){
+          exponentHtml=`<sup class="math-exponent"><span style="display:inline-flex;align-items:center;unicode-bidi:isolate;direction:rtl">(${parseMath(exponent.slice(1,-1))})</span></sup>`;
+        }else{
+          exponentHtml=renderExpTag(exponent);
+        }
+        return `<span class="math-power"><span class="math-base">( ${parseMath(baseExpr)} )</span>${exponentHtml}</span>`;
+      }
+    }
+  }
+
+  // CRITICAL ORDER: split equations before fractions so "س = 5/2"
+  // becomes an equation whose right-hand side is a stacked fraction.
+  const eq=splitTopLevel(raw, [" = "]);
+  if(eq){
+    return `<span class="math-binary"><span>${parseMath(eq.left)}</span><span class="math-op">=</span><span>${parseMath(eq.right)}</span></span>`;
+  }
+
+  // Only split a slash at the current expression level; exponent fractions remain in renderExpTag.
+  if(!raw.includes("^")){
+    const frac=splitTopLevel(raw, [" / ", "/"]);
+    if(frac && frac.left.trim() && frac.right.trim()){
+      return `<span class="math-fraction"><span class="math-num">${parseMath(frac.left.trim())}</span><span class="math-den">${parseMath(frac.right.trim())}</span></span>`;
+    }
+  }
+
+  // Split binary operators only at top level; recursively render each side.
+  const bin=splitTopLevel(raw, [" + ", " - ", " × ", " ÷ "]);
+  if(bin){
+    const op=bin.op;
+    return `<span class="math-binary"><span>${parseMath(bin.left)}</span><span class="math-op ${op==='-'?'math-op-minus':''}">${op==='-'?'−':op}</span><span>${parseMath(bin.right)}</span></span>`;
+  }
+  return parseMathUnit(raw);
+};
+
+const MASTER_CHALLENGES=[
+  {level:1,topic:"قوانين الأسس (الضرب)",prompt:"ما هو التبسيط الصحيح لحاصل ضرب القوتين ذاتي الأساس المتشابه؟",math:"س^4 × س^5",options:["س^9","س^-1","٢س^9","س^20"],correct:0,rule:"س^م × س^ن = س^(م + ن)",explanation:"عند ضرب الأساسات المتشابهة، نقوم بجمع الأسس: 4 + 5 = 9."},
+  {level:1,topic:"قوانين الأسس (القسمة)",prompt:"أوجد ناتج تبسيط كسر القوى التالي في أبسط صورة:",math:"ص^8 ÷ ص^3",options:["ص^5","ص^11","ص^(8/3)","ص^24"],correct:0,rule:"س^م ÷ س^ن = س^(م - ن)",explanation:"عند قسمة الأساسات المتشابهة، نطرح أس المقام من أس البسط: 8 - 3 = 5."},
+  {level:1,topic:"قوة القوة",prompt:"ما القيمة المكافئة لرفع مقدار ذي قوة إلى أس خارجي؟",math:"(ع^3)^4",options:["ع^12","ع^7","ع^81","ع^1"],correct:0,rule:"(س^م)^ن = س^(م × ن)",explanation:"عند رفع القوة إلى أس آخر، نضرب الأس الداخلي في الخارجي: 3 × 4 = 12."},
+  {level:1,topic:"الأسس السالبة",prompt:"احسب القيمة العددية الناتجة عن الأس الصحيح السالب:",math:"4^-2",options:["1/16","-8","-16","1/8"],correct:0,rule:"س^-ن = 1 / (س^ن)",explanation:"الأس السالب يُقلب إلى المقام بأس موجب: 1 / (4^2) = 1/16."},
+  {level:1,topic:"الأس الصفري",prompt:"ما الناتج الحسابي للمقدار التالي لأي عدد غير صفري س؟",math:"(9س)^0 + 5س^0",options:["6","1","14","0"],correct:0,rule:"أي مقدار غير صفري مرفوع للأس صفر يساوي 1",explanation:"(9س)^0 = 1، بينما 5(س^0) = 5(1) = 5. المجموع: 1 + 5 = 6."},
+  {level:2,topic:"الصورة الأسية للجذور",prompt:"حوّل المقدار الجذري التالي إلى صورة أس نسبي (كسري):",math:"جذر[5](س^3)",options:["س^(3/5)","س^(5/3)","س^15","س^-2"],correct:0,rule:"جذر[ن](س^م) = س^(م/ن)",explanation:"دليل الجذر (5) يصبح مقاماً للكسر والأس الداخلي (3) بسطاً: (3 على 5)."},
+  {level:2,topic:"تبسيط الجذور الصماء",prompt:"بسّط الجذر الأصم التالي إلى أبسط صورة ممكنة:",math:"جذر(72)",options:["6 جذر(2)","8 جذر(3)","2 جذر(6)","36 جذر(2)"],correct:0,rule:"جذر(أ × ب) = جذر(أ) × جذر(ب)",explanation:"72 = 36 × 2. إذن جذر(36) × جذر(2) = 6 جذر(2)."},
+  {level:2,topic:"الجذور التكعيبية السالبة",prompt:"أوجد القيمة الحقيقية للجذر الفردي للعدد السالب:",math:"جذر[3](-64)",options:["-4","4","غير معرّف في ح","-8"],correct:0,rule:"الجذر ذو الدليل الفردي معرّف للأعداد السالبة",explanation:"بما أن (-4) × (-4) × (-4) = -64، فإن قيمة الجذر التكعيبي تساوي -4."},
+  {level:2,topic:"ضرب الجذور الصماء",prompt:"احسب حاصل ضرب الجذرين التربيعيين في أبسط صورة:",math:"جذر(6) × جذر(3)",options:["3 جذر(2)","جذر(18)","2 جذر(3)","6 جذر(2)"],correct:0,rule:"جذر(أ) × جذر(ب) = جذر(أ ب)",explanation:"جذر(6) × جذر(3) = جذر(18) = جذر(9 × 2) = 3 جذر(2)."},
+  {level:2,topic:"الأسس النسبية السالبة",prompt:"أوجد القيمة العددية المبسطة للمقدار ذي الأس النسبي السالب:",math:"27^(-1/3)",options:["1/3","-3","-1/3","3"],correct:0,rule:"س^(-1/ن) = 1 / جذر[ن](س)",explanation:"27^(-1/3) = 1 / (27^(1/3)) = 1 / جذر[3](27) = 1/3."},
+  {level:3,topic:"إنطاق المقام البسيط",prompt:"اجعل مقام الكسر التالي عدداً صحيحاً نسبياً (إنطاق المقام):",math:"10 / جذر(5)",options:["2 جذر(5)","5 جذر(2)","2","10 جذر(5)"],correct:0,rule:"الضرب بسطاً ومقاماً في جذر المقام",explanation:"(10 جذر(5)) / 5 = 2 جذر(5)."},
+  {level:3,topic:"جمع الجذور المتشابهة",prompt:"احسب ناتج تبسيط وجمع الجذور الصماء التالية:",math:"جذر(12) + جذر(27)",options:["5 جذر(3)","جذر(39)","6 جذر(3)","9 جذر(3)"],correct:0,rule:"تبسيط كل جذر ثم جمع المعاملات",explanation:"جذر(12) = 2 جذر(3)، وجذر(27) = 3 جذر(3). إذن: 2+3 = 5 جذر(3)."},
+  {level:3,topic:"مرافق المقدار الجذري",prompt:"ما هو مرافق المقدار الجذري ذي الحدين التالي؟",math:"جذر(7) - 2",options:["جذر(7) + 2","-جذر(7) - 2","2 - جذر(7)","جذر(7) - 4"],correct:0,rule:"مرافق (جذر(أ) - ب) هو (جذر(أ) + ب)",explanation:"المرافق يعكس إشارة الحد الثاني لتطبيق قاعدة الفرق بين مربعين."},
+  {level:3,topic:"إنطاق المقام المركب",prompt:"بسّط ناتج الكسر التالي عبر الضرب في المرافق:",math:"1 / (جذر(3) + جذر(2))",options:["جذر(3) - جذر(2)","جذر(3) + جذر(2)","1","جذر(5)"],correct:0,rule:"ضرب البسط والمقام في مرافق المقام",explanation:"المقام = 3 - 2 = 1. فيبقى في البسط: جذر(3) - جذر(2)."},
+  {level:3,topic:"مربع حدين جذريين",prompt:"فُك مربع المقدار التالي إلى أبسط صورة عددية وجذرية:",math:"(جذر(5) + جذر(2))^2",options:["7 + 2 جذر(10)","7","7 + جذر(10)","10 + 2 جذر(7)"],correct:0,rule:"(أ + ب)^2 = أ^2 + 2أ ب + ب^2",explanation:"5 + 2 جذر(10) + 2 = 7 + 2 جذر(10)."},
+  {level:4,topic:"معادلة أسية أساس موحد",prompt:"أوجد قيمة المتغير س التي تحقق المعادلة الأسية:",math:"3^(2س - 1) = 27",options:["س = 2","س = 3","س = 1","س = 4"],correct:0,rule:"أ^ق(س) = أ^ن  ⇐  ق(س) = ن",explanation:"27 = 3^3. إذن: 2س - 1 = 3 ⇐ 2س = 4 ⇐ س = 2."},
+  {level:4,topic:"معادلة أسية بتحليل الأساسات",prompt:"ما هو حل المعادلة الأسية التالية في ح؟",math:"4^س = 32",options:["س = 5/2","س = 8","س = 2","س = 4/5"],correct:0,rule:"تحويل الطرفين إلى قوى الأساس 2",explanation:"2^(2س) = 2^5 ⇐ 2س = 5 ⇐ س = 5/2."},
+  {level:4,topic:"معادلة جذرية خطية",prompt:"حل المعادلة الجذرية التالية في ح:",math:"جذر(3س + 4) = 5",options:["س = 7","س = 21","س = 3","س = 9"],correct:0,rule:"بتربيع الطرفين والتأكد من صحة الحل",explanation:"بتربيع الطرفين: 3س + 4 = 25 ⇐ 3س = 21 ⇐ س = 7."},
+  {level:4,topic:"استبعاد الحلول الدخيلة",prompt:"ما هي مجموعة حل المعادلة الجذرية:",math:"جذر(س + 6) = س",options:["{3}","{3 ، -2}","{-2}","لا يوجد حل"],correct:0,rule:"الجذر الرئيسي دائماً موجب، فيُستبعد الحل السالب كحل دخيل",explanation:"بتربيع الطرفين نجد س = 3 أو س = -2. لكن س = -2 مرفوض. إذن الحل {3}."},
+  {level:4,topic:"مسألة قوى مدمجة عليا",prompt:"إذا علمت أن 5^س = 2، فما هي القيمة الحسابية للمقدار التالي؟",math:"5^(س + 2)",options:["50","27","10","29"],correct:0,rule:"أ^(س + ن) = أ^س × أ^ن",explanation:"5^(س + 2) = 5^س × 5^2 = 2 × 25 = 50."}
+];
+
+let activeChallenges=[],currentIndex=0,score=0,streak=0,correctCount=0,selectedOption=null,timerSeconds=0,timerInterval=null;
+const buildDynamicQuiz=()=>{let list=[];[1,2,3,4].forEach(lvl=>{let items=MASTER_CHALLENGES.filter(c=>c.level===lvl);for(let i=items.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[items[i],items[j]]=[items[j],items[i]]}list=list.concat(items)});return list};
+const shuffleRemaining=()=>{if(activeChallenges.length-currentIndex-1>1){let rem=activeChallenges.slice(currentIndex+1);for(let i=rem.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[rem[i],rem[j]]=[rem[j],rem[i]]}activeChallenges=activeChallenges.slice(0,currentIndex+1).concat(rem)}};
+const loadCurrentQuestion=()=>{selectedOption=null;document.getElementById('explanationBox').classList.add('hidden');document.getElementById('nextBtn').classList.add('hidden');const q=activeChallenges[currentIndex];document.getElementById('levelBadge').innerText=`المستوى ${useEasternDigits?toEastern(q.level):q.level}`;document.getElementById('topicTitle').innerText=q.topic;document.getElementById('questionPrompt').innerText=q.prompt;document.getElementById('questionCounter').innerText=`${useEasternDigits?toEastern(currentIndex+1):currentIndex+1} / ${useEasternDigits?toEastern(activeChallenges.length):activeChallenges.length}`;document.getElementById('progressBar').style.width=`${Math.round(((currentIndex+1)/activeChallenges.length)*100)}%`;document.getElementById('mathDisplay').innerHTML=parseMath(q.math);const paired=q.options.map((val,idx)=>({val,isCorrect:idx===q.correct}));for(let i=paired.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[paired[i],paired[j]]=[paired[j],paired[i]]}q.activeCorrectIdx=paired.findIndex(p=>p.isCorrect);const grid=document.getElementById('optionsGrid');grid.innerHTML='';paired.forEach((p,idx)=>{const btn=document.createElement('button');btn.className="rounded-2xl border border-slate-800 bg-slate-800/80 hover:bg-slate-700/80 active:scale-95 transition text-base font-bold text-slate-100 flex items-center justify-center";btn.innerHTML=parseMath(p.val);btn.onclick=()=>handleSelect(idx,btn,q,paired);grid.appendChild(btn)});};
+const handleSelect=(idx,btn,q,paired)=>{if(selectedOption!==null)return;selectedOption=idx;audio.init();const buttons=document.getElementById('optionsGrid').querySelectorAll('button');if(idx===q.activeCorrectIdx){btn.className="rounded-2xl border border-emerald-400 bg-emerald-600 text-white font-bold ring-2 ring-emerald-400/40 flex items-center justify-center min-h-[82px]";audio.playCorrect();score+=q.level*10+streak*2;streak++;correctCount++;if(streak>1){const sb=document.getElementById('streakBadge');sb.classList.remove('hidden');sb.innerText=`🔥 ${useEasternDigits?toEastern(streak):streak}`}}else{btn.className="rounded-2xl border border-rose-400 bg-rose-600 text-white font-bold flex items-center justify-center min-h-[82px]";audio.playWrong();buttons[q.activeCorrectIdx].className="rounded-2xl border border-emerald-400 bg-emerald-600/80 text-white font-bold flex items-center justify-center min-h-[82px]";streak=0;document.getElementById('streakBadge').classList.add('hidden')}document.getElementById('scoreDisplay').innerText=useEasternDigits?toEastern(score):score;document.getElementById('ruleContent').textContent=q.rule;document.getElementById('explanationText').textContent=q.explanation;document.getElementById('explanationBox').classList.remove('hidden');document.getElementById('nextBtn').classList.remove('hidden');buttons.forEach((b,i)=>{if(i!==idx&&i!==q.activeCorrectIdx)b.classList.add('opacity-40','pointer-events-none')});};
+document.getElementById('nextBtn').onclick=()=>{audio.playClick();if((currentIndex+1)%5===0)shuffleRemaining();if(currentIndex<activeChallenges.length-1){currentIndex++;loadCurrentQuestion()}else{showResults()}};
+const showResults=()=>{clearInterval(timerInterval);document.getElementById('arenaCard').classList.add('hidden');document.getElementById('victoryCard').classList.remove('hidden');audio.playVictory();const pct=Math.round((correctCount/activeChallenges.length)*100);document.getElementById('finalScore').innerText=useEasternDigits?toEastern(score):score;document.getElementById('accuracyDisplay').innerText=`${useEasternDigits?toEastern(pct):pct}%`};
+document.getElementById('restartBtn').onclick=()=>{activeChallenges=buildDynamicQuiz();currentIndex=0;score=0;streak=0;correctCount=0;timerSeconds=0;document.getElementById('scoreDisplay').innerText=useEasternDigits?toEastern(0):0;document.getElementById('streakBadge').classList.add('hidden');document.getElementById('victoryCard').classList.add('hidden');document.getElementById('arenaCard').classList.remove('hidden');loadCurrentQuestion();startTimer()};
+document.getElementById('soundToggleBtn').onclick=()=>{audio.enabled=!audio.enabled;document.getElementById('soundToggleBtn').classList.toggle('text-emerald-400',audio.enabled)};
+document.getElementById('numeralToggleBtn').onclick=()=>{useEasternDigits=!useEasternDigits;document.getElementById('numeralToggleBtn').innerText=useEasternDigits?'١٢٣':'123';document.getElementById('scoreDisplay').innerText=useEasternDigits?toEastern(score):score;loadCurrentQuestion()};
+function startTimer(){clearInterval(timerInterval);timerInterval=setInterval(()=>{timerSeconds++;document.getElementById('timerTag').innerText=`⏱️ ${useEasternDigits?toEastern(timerSeconds):timerSeconds} ثانية`},1000)}
+window.onload=()=>{activeChallenges=buildDynamicQuiz();currentIndex=0;score=0;streak=0;correctCount=0;document.getElementById('scoreDisplay').innerText=useEasternDigits?toEastern(0):0;document.getElementById('victoryCard').classList.add('hidden');document.getElementById('arenaCard').classList.remove('hidden');loadCurrentQuestion();startTimer();};
+</script>
+
+
+
+<footer id="privacyPolicyFooter" class="w-full max-w-lg mt-4 mb-2 rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-3 text-center text-[10px] leading-relaxed text-slate-400" dir="rtl">
+  <div class="font-bold text-slate-200">إشراف ومتابعة المحتوى الرياضي: أ. أكرم زايد</div>
+  <div class="mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+    <a class="text-sky-300 underline underline-offset-2" href="mailto:Akramzayed95@gmail.com">Akramzayed95@gmail.com</a>
+    <span aria-hidden="true">•</span>
+    <a class="text-sky-300 underline underline-offset-2" href="tel:770101800" dir="ltr">770101800</a>
+  </div>
+  <div class="mt-1"><a class="text-emerald-300 underline underline-offset-2" href="https://akramzayed222-ship-it.github.io/-/privacy-policy-ar.html">سياسة الخصوصية</a></div>
+  <div class="mt-1 text-slate-500">© 2026 المفيد في الرياضيات — جميع الحقوق محفوظة. لا يجوز نسخ المحتوى أو إعادة نشره دون إذن كتابي من صاحب الحقوق.</div>
+</footer>
+
+</body></html>
