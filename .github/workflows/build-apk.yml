@@ -348,38 +348,11 @@ jobs:
       - name: Run full-bank browser DOM, layout and interaction audit
         run: node .github/scripts/test-math-browser.cjs
 
-      - name: Prepare optional Play upload signing key
-        env:
-          PLAY_UPLOAD_KEYSTORE_BASE64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
-          PLAY_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
-          PLAY_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
-          PLAY_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+      - name: Mark this artifact as unsigned QA-only
         run: |
           set -euo pipefail
-          ALL_EMPTY=true
-          ANY_EMPTY=false
-          for value in "$PLAY_UPLOAD_KEYSTORE_BASE64" "$PLAY_UPLOAD_KEYSTORE_PASSWORD" "$PLAY_UPLOAD_KEY_ALIAS" "$PLAY_UPLOAD_KEY_PASSWORD"; do
-            if [ -n "$value" ]; then ALL_EMPTY=false; else ANY_EMPTY=true; fi
-          done
-          if [ "$ALL_EMPTY" = true ]; then
-            echo "PLAY_SIGNING_CONFIGURED=false" >> "$GITHUB_ENV"
-            echo "Play upload signing is not configured; the AAB will be unsigned and NOT uploadable to Google Play."
-          elif [ "$ANY_EMPTY" = true ]; then
-            echo "ERROR: Play upload signing secrets are incomplete." >&2
-            exit 1
-          else
-            KEYSTORE_PATH="$RUNNER_TEMP/almofeed-play-upload.jks"
-            printf '%s' "$PLAY_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
-            test -s "$KEYSTORE_PATH"
-            {
-              echo "PLAY_UPLOAD_KEYSTORE=$KEYSTORE_PATH"
-              echo "PLAY_UPLOAD_KEYSTORE_PASSWORD=$PLAY_UPLOAD_KEYSTORE_PASSWORD"
-              echo "PLAY_UPLOAD_KEY_ALIAS=$PLAY_UPLOAD_KEY_ALIAS"
-              echo "PLAY_UPLOAD_KEY_PASSWORD=$PLAY_UPLOAD_KEY_PASSWORD"
-              echo "PLAY_SIGNING_CONFIGURED=true"
-            } >> "$GITHUB_ENV"
-            echo "Play upload signing secrets are present; bundle signing will be verified after the build."
-          fi
+          echo "PLAY_SIGNING_CONFIGURED=false" >> "$GITHUB_ENV"
+          echo "This workflow is non-production QA only. Release signing secrets are isolated in the protected play-production environment workflow."
 
       - name: Build debug APK and Play App Bundle
         run: gradle --no-daemon clean assembleDebug bundleRelease
