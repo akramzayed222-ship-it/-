@@ -402,6 +402,12 @@ jobs:
             app/build/outputs/bundle/release/app-release.aab
             app/build/outputs/bundle/release/app-release.aab.sha256
             artifacts/play-release-signing-state.txt
+            PLAY_STORE_RELEASE_CHECKLIST_AR.md
+            PRIVACY_POLICY_AR.md
+            docs/privacy-policy-ar.html
+            ENABLE_GITHUB_PAGES_AR.md
+            SOURCE_INTEGRITY.txt
+            README_AR.md
           if-no-files-found: error
           retention-days: 14
 
