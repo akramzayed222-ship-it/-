@@ -43,8 +43,46 @@ jobs:
       - name: Verify source integrity and required math cases
         run: |
           set -euo pipefail
-          cmp --silent ALMOFEED_World_Class_Professional.html app/src/main/assets/index.html
+          python3 - <<'PYCODE'
+          import re
+          from pathlib import Path
+          
+          source = Path("ALMOFEED_World_Class_Professional.html").read_text(encoding="utf-8")
+          asset = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
+          
+          def protected_segments(document, label):
+              scripts = re.findall(r'<script\\b[^>]*>(.*?)</script\\s*>', document, flags=re.I | re.S)
+              main = next((item for item in scripts if "const MASTER_CHALLENGES=[" in item), None)
+              if main is None:
+                  raise SystemExit(label + ": main quiz script not found")
+              parser_start = main.find("let useEasternDigits=true;")
+              bank_start = main.find("const MASTER_CHALLENGES=[", parser_start)
+              bank_end = main.find(chr(10) + "];", bank_start)
+              if min(parser_start, bank_start, bank_end) < 0:
+                  raise SystemExit(label + ": parser/question bank boundaries not found")
+              return main[parser_start:bank_start], main[bank_start:bank_end+3]
+          
+          source_parser, source_bank = protected_segments(source, "Source HTML")
+          asset_parser, asset_bank = protected_segments(asset, "Android asset")
+          if source_parser != asset_parser:
+              raise SystemExit("FAIL: Android math parser/runtime differs from the master source.")
+          if source_bank != asset_bank:
+              raise SystemExit("FAIL: Android exercise/option/answer/explanation bank differs from source.")
+          for forbidden in (
+              "apkGuideBtn", "apkModal", "downloadFileBtn", "installPwaBtn",
+              "PWABuilder", "Netlify Drop", "beforeinstallprompt", "navigator.share",
+              "ecto:", "afBank", "questionBankBtn", "almofeed-professional",
+              "OptimisticAI", "OptimisticMono"
+          ):
+              if forbidden in asset:
+                  raise SystemExit("FAIL: preview/developer UI remains in Android asset: " + forbidden)
+          if "id=\\"almofeed-android-font-fix\\"" not in asset:
+              raise SystemExit("FAIL: Android mathematical typography patch is missing.")
+          print("PASS: Android parser/runtime and full question bank are identical to the master source.")
+          print("PASS: web-only/developer-preview controls are absent from the Android asset.")
+          PYCODE
           grep -q 'id="almofeed-android-font-fix"' ALMOFEED_World_Class_Professional.html
+          grep -q 'id="almofeed-android-font-fix"' app/src/main/assets/index.html
           grep -q 'setTextZoom(100)' app/src/main/java/com/almofeed/math/MainActivity.java
           grep -q 'android:icon="@mipmap/ic_launcher"' app/src/main/AndroidManifest.xml
           grep -q 'compileSdk 36' app/build.gradle
