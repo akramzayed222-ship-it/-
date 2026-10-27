@@ -40,10 +40,20 @@ android {
     buildTypes {
         debug { debuggable true }
         release {
-            minifyEnabled false
+            // R8 obfuscates/optimizes the native Android wrapper; it does not
+            // obfuscate JavaScript/HTML bundled in assets.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
             if (playUploadSigningConfigured) {
                 signingConfig signingConfigs.playUpload
             }
         }
     }
+}
+
+
+dependencies {
+    // Compatible with minSdk 23; supplies the safer HTTPS-based local asset origin.
+    implementation 'androidx.webkit:webkit:1.15.0'
 }
